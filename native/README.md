@@ -1,5 +1,8 @@
 # CartVerity standalone dashboard (experimental)
 
+Copyright Â© 2026 studioIV and CartVerity contributors for CartVerity's original
+code. GodMode9 and its components retain their respective attribution and licenses.
+
 This native 3DS `.firm` payload starts directly in CartVerity, with no script
 listing or file browser. It is built from official GodMode9 2.2.3, commit
 `0ee81b7738401b3e9f0b92b3b11159936222e542`, plus the sources in this directory.
@@ -10,7 +13,7 @@ The original `.gm9` script remains available separately.
 ## Install
 
 Download the experimental native bundle from the
-[v0.2.0-alpha.2 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.2).
+[v0.2.0-alpha.3 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.3).
 It includes the firmware, complete corresponding source, build environment and checksums.
 
 On a console already running Luma3DS, copy **CartVerity.firm** to
@@ -98,7 +101,7 @@ build environment. From the repository root:
 ```sh
 python3 tools/prepare_native.py --out build/godmode9
 cd build/godmode9
-make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.2
+make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.3
 ```
 
 `--source-zip` allows an offline official archive; its SHA-256 must match the

@@ -1,5 +1,8 @@
 # CartVerity for GodMode9
 
+Copyright © 2026 studioIV and CartVerity contributors. GodMode9 and its
+components retain their respective copyright and license notices.
+
 [![Checks](https://github.com/studioIV/cartverity/actions/workflows/check.yml/badge.svg)](https://github.com/studioIV/cartverity/actions/workflows/check.yml)
 
 Read-only Nintendo DS cartridge integrity checking on the Nintendo 3DS family, intended for a New Nintendo 3DS XL running **official GodMode9 2.2.3**. CartVerity records repeated SHA-1 checks, optional trusted-reference comparisons, and SD logs.

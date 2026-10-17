@@ -42,6 +42,7 @@ void cv_draw(const CvPainter *p, const CvView *v) {
     p->rect(p->context, 0, 0, 0, 400, 240, BG);
     p->rect(p->context, 1, 0, 0, 320, 240, BG);
     text(p, 0, 12, 10, ACCENT, "CARTVERITY");
+    text(p, 0, 188, 10, MUTED, "Copyright (c) 2026 studioIV");
     text(p, 0, 12, 26, MUTED, "READ-ONLY / NDS INTEGRITY");
     p->rect(p->context, 0, 12, 43, 376, 1, PANEL);
     text(p, 0, 12, 54, WHITE, "%.36s", v->name);
@@ -139,5 +140,5 @@ void cv_draw(const CvPainter *p, const CvView *v) {
         text(p, 1, 12, 153, WHITE, "Y  Settings");
     text(p, 1, 12, 177, MUTED, "Consistency alone does not");
     text(p, 1, 12, 191, MUTED, "establish known-good data.");
-    text(p, 1, 12, 222, MUTED, "v0.2.0-alpha.2 / experimental");
+    text(p, 1, 12, 222, MUTED, "v0.2.0-alpha.3 / experimental");
 }

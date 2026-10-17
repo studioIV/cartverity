@@ -19,7 +19,7 @@
 #include "power.h"
 #include <stdarg.h>
 
-#define CV_VERSION "0.2.0-alpha.2"
+#define CV_VERSION "0.2.0-alpha.3"
 #define CV_OUTPUT "0:/gm9/out/dscheck"
 #define CV_PIXELS ((400u+320u)*240u)
 static CvSettings settings = {1, 2, 0, 0};

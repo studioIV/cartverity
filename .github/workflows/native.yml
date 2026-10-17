@@ -42,7 +42,7 @@ jobs:
           cp native/README.md dist/native/README.md
       - name: Build standalone ARM payload
         working-directory: build/godmode9
-        run: make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.2 -j2
+        run: make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.3 -j2
       - name: Audit active cartridge initializer
         run: |
           cd build/godmode9

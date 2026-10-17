@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0-alpha.3 - 2026-10-18
+
+- Display `Copyright (c) 2026 studioIV` on the top screen across all pages.
+- Add studioIV to the project copyright notices while preserving contributor
+  attribution, existing licensing and upstream GodMode9 notices.
+
 ## 0.2.0-alpha.2 - 2026-10-18
 
 - Render complete dashboard frames in RAM; publish only changed pixels to avoid
