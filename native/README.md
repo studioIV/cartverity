@@ -5,6 +5,8 @@ listing or file browser. It is built from official GodMode9 2.2.3, commit
 `0ee81b7738401b3e9f0b92b3b11159936222e542`, plus the sources in this directory.
 The original `.gm9` script remains available separately.
 
+![Dashboard host preview with simulated scan data](dashboard-preview.png)
+
 ## Install
 
 On a console already running Luma3DS, copy **CartVerity.firm** to

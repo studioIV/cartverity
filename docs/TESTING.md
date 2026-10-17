@@ -7,7 +7,29 @@
 - `tools/check_upstream.py` verifies source hashes and command signatures against `upstream-lock.json`.
 - No physical console or cartridge was available during initial development.
 
-There is no claim of physical New 3DS XL validation. Keep the initial release marked as awaiting hardware testing until reports demonstrate that it runs on the target.
+After initial development, the user supplied photos of one New 3DS XL script
+run. Both SHA-1 values agreed, no reference was supplied, and the log ended with
+`CONSISTENT_UNVERIFIED` and `state=COMPLETE`. This is limited evidence for one
+cartridge; the exact GodMode9 version and broader compatibility remain unverified.
+It does not validate the separate native payload.
+
+## Native dashboard
+
+The compiled portable C core is exercised by `native/tests/test_native.py` with
+real hashlib SHA-1 callbacks, changed regions, partial blocks, cancellation at
+pass/block boundaries, read/initialization failures, references, metric bounds
+and drawing bounds. Build it as a shared library and supply its path:
+
+```sh
+cc -shared -fPIC -O2 -std=c11 -Wall -Wextra -Werror native/source/cartverity_scan.c native/source/cartverity_ui.c -o /tmp/cartverity.so
+python3 native/tests/test_native.py /tmp/cartverity.so
+```
+
+The native workflow additionally compiles and packages the ARM `.firm`. Physical
+tests remain pending for native boot, both read passes, SHA-1 agreement with the
+script/PC, cancellation, reference match/mismatch, rejection of unsupported carts,
+rescan, log creation and power/reboot controls. Do not infer physical validation
+from a host-rendered preview or a successful ARM build.
 
 ## Run automated checks
 
