@@ -4,7 +4,16 @@
 
 Read-only Nintendo DS cartridge integrity checking on the Nintendo 3DS family, intended for a New Nintendo 3DS XL running **official GodMode9 2.2.3**. CartVerity records repeated SHA-1 checks, optional trusted-reference comparisons, and SD logs.
 
-**Status: v0.1.0, awaiting hardware testing.** The script is checked against a pinned GodMode9 release and exercised with a simulated filesystem. It has not yet been run on a physical console. See [testing](docs/TESTING.md) before describing it as hardware validated.
+**Script v0.1.0:** one user-reported New 3DS XL run completed both passes with matching SHA-1 values and an SD log (`CONSISTENT_UNVERIFIED`, no reference). This is limited hardware evidence, not a compatibility certification. The automated suite also exercises a simulated filesystem. See [testing](docs/TESTING.md).
+
+**Standalone dashboard:** the experimental [native 3DS payload](native/README.md)
+starts directly in a dual-screen checker, with overall/pass progress bars, read
+speed, elapsed time, ETA, changed logical regions and hash/log details. It is a
+custom GodMode9-based `.firm`, separate from the script. Native console testing
+is still required. [Native build and tests](https://github.com/studioIV/cartverity/actions/workflows/native.yml).
+
+The combined native firmware uses GodMode9's GPL licensing; its complete
+corresponding source accompanies binary builds. See [native build and licensing](native/README.md).
 
 Download the [CartVerity.gm9 script](https://github.com/studioIV/cartverity/releases/download/v0.1.0/CartVerity.gm9) or the [complete v0.1.0 package](https://github.com/studioIV/cartverity/releases/download/v0.1.0/cartverity-v0.1.0.zip). Release notes and checksums are on the [pre-release page](https://github.com/studioIV/cartverity/releases/tag/v0.1.0).
 

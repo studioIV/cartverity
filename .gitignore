@@ -4,3 +4,6 @@ dist/
 .upstream-cache/
 gm9/out/
 gm9/support/
+build/
+*.dll
+*.so
