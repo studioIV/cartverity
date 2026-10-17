@@ -41,12 +41,18 @@ class Metrics(C.Structure):
                 ('bytes', U32), ('speed', U64), ('eta', U64), ('known', C.c_int)]
 
 
+class Settings(C.Structure):
+    _fields_ = [('refresh', C.c_uint), ('brightness', C.c_uint),
+                ('reference', C.c_uint), ('result_page', C.c_uint)]
+
+
 class View(C.Structure):
     _fields_ = [('name', C.c_char * 40), ('code', C.c_char * 5), ('revision', C.c_uint),
                 ('total', U32), ('pass_number', C.c_uint), ('done', U32), ('ms', U64),
                 ('stage', C.c_uint), ('page', C.c_uint), ('reference', C.c_int),
                 ('saved', C.c_int), ('detail', C.c_char * 80), ('path', C.c_char * 192),
-                ('result', C.POINTER(Result))]
+                ('result', C.POINTER(Result)), ('settings', C.POINTER(Settings)),
+                ('selected_setting', C.c_uint)]
 
 
 RECT = C.CFUNCTYPE(None, C.c_void_p, C.c_int, C.c_int, C.c_int, C.c_int, C.c_int, U32)
@@ -63,6 +69,13 @@ LIBRARY.cv_crc32.restype = U32
 LIBRARY.cv_metrics.argtypes = [U32, C.c_uint, U32, U64]
 LIBRARY.cv_metrics.restype = Metrics
 LIBRARY.cv_draw.argtypes = [C.POINTER(Painter), C.POINTER(View)]
+LIBRARY.cv_present.argtypes = [C.POINTER(C.c_uint16)] * 3 + [C.c_size_t, C.c_int]
+LIBRARY.cv_present.restype = C.c_size_t
+LIBRARY.cv_refresh_ms.argtypes = [C.POINTER(Settings)]
+LIBRARY.cv_refresh_ms.restype = C.c_uint
+LIBRARY.cv_brightness.argtypes = [C.POINTER(Settings)]
+LIBRARY.cv_brightness.restype = C.c_int
+LIBRARY.cv_setting_change.argtypes = [C.POINTER(Settings), C.c_uint, C.c_int]
 
 
 def run_scan(data, second=None, reference=None, fault=None, cancel=None, fail_begin=0):
@@ -92,6 +105,35 @@ def run_scan(data, second=None, reference=None, fault=None, cancel=None, fail_be
 
 
 class NativeTests(unittest.TestCase):
+    def test_present_does_not_clear_or_rewrite_unchanged_pixels(self):
+        target = (C.c_uint16 * 12)(*[65535]*12)
+        previous = (C.c_uint16 * 12)()
+        frame = (C.c_uint16 * 12)(*range(12))
+        self.assertEqual(LIBRARY.cv_present(target, previous, frame, 12, 1), 12)
+        self.assertEqual(list(target), list(frame))
+        self.assertEqual(LIBRARY.cv_present(target, previous, frame, 12, 0), 0)
+        frame[3], frame[7] = 123, 0
+        # An unchanged pixel must not be touched by presentation.
+        target[5] = 54321
+        self.assertEqual(LIBRARY.cv_present(target, previous, frame, 12, 0), 2)
+        self.assertEqual((target[3], target[7], target[5]), (123, 0, 54321))
+        self.assertEqual(list(previous), list(frame))
+
+    def test_settings_values_wrap_and_invalid_inputs(self):
+        s = Settings(1, 2, 0, 0)
+        self.assertEqual(LIBRARY.cv_refresh_ms(C.byref(s)), 250)
+        self.assertEqual(LIBRARY.cv_brightness(C.byref(s)), 110)
+        for row, count, field in ((0, 4, 'refresh'), (1, 5, 'brightness'),
+                                  (2, 3, 'reference'), (3, 3, 'result_page')):
+            setattr(s, field, 0)
+            LIBRARY.cv_setting_change(C.byref(s), row, -1)
+            self.assertEqual(getattr(s, field), count-1)
+            LIBRARY.cv_setting_change(C.byref(s), row, 1)
+            self.assertEqual(getattr(s, field), 0)
+        s.refresh = s.brightness = 999
+        self.assertEqual(LIBRARY.cv_refresh_ms(C.byref(s)), 250)
+        self.assertEqual(LIBRARY.cv_brightness(C.byref(s)), 110)
+
     def test_crc_known_vector_and_streaming(self):
         data = b'123456789'
         crc = 0xffffffff
@@ -175,7 +217,9 @@ class NativeTests(unittest.TestCase):
                     total=536870912, pass_number=2, done=536870912, ms=3600000,
                     reference=1, saved=1, detail=b'Both reads match the supplied SHA-1.',
                     path=b'0:/gm9/out/dscheck/native_261018_010134_0000.txt', result=C.pointer(out))
-        for stage in range(4):
+        options = Settings(3, 4, 2, 2)
+        view.settings = C.pointer(options)
+        for stage in range(5):
             for status in range(10):
                 for page in range(3):
                     view.stage, view.page, out.status = stage, page, status

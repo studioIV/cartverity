@@ -2,9 +2,10 @@
 #ifndef CARTVERITY_UI_H
 #define CARTVERITY_UI_H
 #include "cartverity_scan.h"
+#include "cartverity_display.h"
 
 enum { CV_SCREEN_TOP, CV_SCREEN_BOTTOM };
-enum { CV_STAGE_READY, CV_STAGE_SCANNING, CV_STAGE_RESULT, CV_STAGE_ERROR };
+enum { CV_STAGE_READY, CV_STAGE_SCANNING, CV_STAGE_RESULT, CV_STAGE_ERROR, CV_STAGE_SETTINGS };
 typedef struct {
     void *context;
     void (*rect)(void *, int screen, int x, int y, int w, int h, uint32_t color);
@@ -26,6 +27,8 @@ typedef struct {
     char detail[80];
     char log_path[192];
     const CvResult *result;
+    const CvSettings *settings;
+    unsigned selected_setting;
 } CvView;
 
 void cv_draw(const CvPainter *paint, const CvView *view);

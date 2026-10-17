@@ -21,7 +21,7 @@ pass/block boundaries, read/initialization failures, references, metric bounds
 and drawing bounds. Build it as a shared library and supply its path:
 
 ```sh
-cc -shared -fPIC -O2 -std=c11 -Wall -Wextra -Werror native/source/cartverity_scan.c native/source/cartverity_ui.c -o /tmp/cartverity.so
+cc -shared -fPIC -O2 -std=c11 -Wall -Wextra -Werror native/source/cartverity_scan.c native/source/cartverity_ui.c native/source/cartverity_display.c -o /tmp/cartverity.so
 python3 native/tests/test_native.py /tmp/cartverity.so
 ```
 

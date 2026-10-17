@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Compile portable scan and dashboard
-        run: cc -shared -fPIC -O2 -std=c11 -Wall -Wextra -Werror native/source/cartverity_scan.c native/source/cartverity_ui.c -o /tmp/cartverity.so
+        run: cc -shared -fPIC -O2 -std=c11 -Wall -Wextra -Werror native/source/cartverity_scan.c native/source/cartverity_ui.c native/source/cartverity_display.c -o /tmp/cartverity.so
       - name: Exercise native scan and drawing callbacks
         run: python3 native/tests/test_native.py /tmp/cartverity.so
   firmware:
@@ -42,7 +42,7 @@ jobs:
           cp native/README.md dist/native/README.md
       - name: Build standalone ARM payload
         working-directory: build/godmode9
-        run: make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.1 -j2
+        run: make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.2 -j2
       - name: Audit active cartridge initializer
         run: |
           cd build/godmode9

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0-alpha.2 - 2026-10-18
+
+- Render complete dashboard frames in RAM; publish only changed pixels to avoid
+  clearing visible screens repeatedly. Default refresh is now 250 ms.
+- Add Y-button session settings: refresh rate, brightness, Auto/Require/Ignore
+  reference policy and initial result page. X restores defaults.
+- Record refresh rate and reference policy in SD logs. Keep two full scan passes
+  and the native initializer's save-probe bypass.
+- Test unchanged-pixel preservation, settings wrap/bounds and settings-screen
+  drawing. Physical flicker and controls testing remains required.
+
 ## 0.2.0-alpha.1 - 2026-10-18 (native experimental)
 
 - Add a dedicated GodMode9-based 3DS `.firm` dashboard with live overall/pass

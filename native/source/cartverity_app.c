@@ -16,10 +16,19 @@
 #include "rtc.h"
 #include "language.h"
 #include "entrypoints.h"
+#include "power.h"
 #include <stdarg.h>
 
-#define CV_VERSION "0.2.0-alpha.1"
+#define CV_VERSION "0.2.0-alpha.2"
 #define CV_OUTPUT "0:/gm9/out/dscheck"
+#define CV_PIXELS ((400u+320u)*240u)
+static CvSettings settings = {1, 2, 0, 0};
+static uint16_t *frame, *previous_frame;
+static bool frame_valid;
+
+static uint16_t *screen_buffer(int screen) {
+    return frame + (screen == CV_SCREEN_TOP ? 0 : 400*240);
+}
 
 typedef struct {
     CartData *cart;
@@ -40,15 +49,47 @@ typedef struct {
 
 static void paint_rect(void *unused, int screen, int x, int y, int w, int h, uint32_t color) {
     (void)unused;
-    DrawRectangle(screen == CV_SCREEN_TOP ? TOP_SCREEN : BOT_SCREEN, x, y, w, h, color);
+    const int width = screen == CV_SCREEN_TOP ? 400 : 320;
+    if (x < 0 || y < 0 || w <= 0 || h <= 0 || x+w > width || y+h > 240) return;
+    DrawRectangle(screen_buffer(screen), x, y, w, h, color);
 }
 static void paint_text(void *unused, int screen, int x, int y, uint32_t color, const char *value) {
     (void)unused;
-    DrawStringF(screen == CV_SCREEN_TOP ? TOP_SCREEN : BOT_SCREEN, x, y,
-        color, COLOR_TRANSPARENT, "%s", value);
+    const int width = screen == CV_SCREEN_TOP ? 400 : 320;
+    if (x < 0 || y < 0 || y+(int)GetFontHeight() > 240) return;
+    /* DrawString identifies width by a hardware framebuffer address. Render
+       glyphs explicitly so our RAM top-screen buffer retains its 400px width. */
+    while (*value && x+(int)GetFontWidth() <= width) {
+        DrawCharacter(screen_buffer(screen), (unsigned char)*value++, x, y, color, COLOR_TRANSPARENT);
+        x += GetFontWidth();
+    }
 }
 static const CvPainter painter = {NULL, paint_rect, paint_text};
-static void draw(CvSession *s) { cv_draw(&painter, &s->view); }
+static void draw(CvSession *s) {
+    s->view.settings = &settings;
+    cv_draw(&painter, &s->view);
+    cv_present(TOP_SCREEN, previous_frame, frame, 400*240, !frame_valid);
+    cv_present(BOT_SCREEN, previous_frame+400*240, frame+400*240, 320*240, !frame_valid);
+    frame_valid = true;
+}
+
+static void configure(CvSession *s) {
+    s->view.stage = CV_STAGE_SETTINGS;
+    s->view.selected_setting = 0;
+    draw(s);
+    for (;;) {
+        while (HID_ReadState() & BUTTON_ANY) {}
+        const u32 keys = InputWait(0);
+        if (keys & (BUTTON_B | BUTTON_Y)) return;
+        if (keys & BUTTON_UP) s->view.selected_setting = (s->view.selected_setting + 3) % 4;
+        if (keys & BUTTON_DOWN) s->view.selected_setting = (s->view.selected_setting + 1) % 4;
+        if (keys & BUTTON_LEFT) cv_setting_change(&settings, s->view.selected_setting, -1);
+        if (keys & (BUTTON_RIGHT | BUTTON_A)) cv_setting_change(&settings, s->view.selected_setting, 1);
+        if (keys & BUTTON_X) settings = (CvSettings){1, 2, 0, 0};
+        SetScreenBrightness(cv_brightness(&settings));
+        draw(s);
+    }
+}
 
 static void encode_hex(const uint8_t *bytes, unsigned size, char *out) {
     static const char digits[] = "0123456789ABCDEF";
@@ -136,9 +177,10 @@ static bool discover(CvSession *s) {
     snprintf(s->reference_path, sizeof(s->reference_path),
         "0:/gm9/support/dscheck/%s.nds.sha1", stem);
     FIL reference; FILINFO info;
-    FRESULT result = fvx_stat(s->reference_path, &info);
+    FRESULT result = settings.reference == 2 ? FR_NO_FILE : fvx_stat(s->reference_path, &info);
     if (result == FR_NO_FILE || result == FR_NO_PATH) {
-        strcpy(s->view.detail, "Ready. No known-good reference.");
+        if (settings.reference == 1) return error(s, "A reference is required. Add its file.");
+        strcpy(s->view.detail, settings.reference == 2 ? "Reference comparison disabled." : "Ready. No known-good reference.");
     } else {
         if (result != FR_OK || (info.fattrib & AM_DIR) || info.fsize != 20)
             return error(s, "Reference must be 20 binary bytes.");
@@ -194,7 +236,7 @@ static int progress(void *opaque, unsigned pass, uint32_t done, const CvResult *
     const uint64_t ms = timer_msec(s->timer);
     s->view.pass = pass; s->view.done = done; s->view.elapsed_ms = ms;
     s->view.result = result;
-    if (ms >= s->last_draw + 100 || !done || done == s->total) {
+    if (ms >= s->last_draw + cv_refresh_ms(&settings) || !done || done == s->total) {
         draw(s); s->last_draw = ms;
     }
     return !CheckButton(BUTTON_B);
@@ -206,6 +248,8 @@ static void scan(CvSession *s, uint8_t *buffer) {
     log_line(s, "state=INCOMPLETE");
     log_line(s, "version=" CV_VERSION);
     log_line(s, "godmode9_base=2.2.3");
+    log_line(s, "display_refresh_ms=%u", cv_refresh_ms(&settings));
+    log_line(s, "reference_policy=%s", settings.reference == 2 ? "IGNORE" : settings.reference == 1 ? "REQUIRE" : "AUTO");
     log_line(s, "rom_view=full_standard_nds");
     log_line(s, "game_code_hex=%02X%02X%02X%02X", (unsigned)s->header[12],
         (unsigned)s->header[13], (unsigned)s->header[14], (unsigned)s->header[15]);
@@ -244,7 +288,7 @@ static void scan(CvSession *s, uint8_t *buffer) {
     log_line(s, "read_detail=%s", s->view.detail);
     log_line(s, "state=COMPLETE");
     s->finished = true; log_close(s);
-    s->view.stage = CV_STAGE_RESULT; s->view.page = 0;
+    s->view.stage = CV_STAGE_RESULT; s->view.page = settings.result_page;
     if (s->result.status == CV_CONSISTENT)
         strcpy(s->view.detail, "No known-good reference compared.");
     else if (s->result.status == CV_REFERENCE_MATCH)
@@ -263,11 +307,15 @@ u32 CartVerityMain(int entrypoint) {
     SetLanguage(NULL, 0);
     InitSDCardFS();
     InitNandCrypto(entrypoint != ENTRY_B9S);
+    SetScreenBrightness(cv_brightness(&settings));
+    frame = malloc(CV_PIXELS * sizeof(*frame));
+    previous_frame = malloc(CV_PIXELS * sizeof(*previous_frame));
+    frame_valid = false;
     CvSession *s = calloc(1, sizeof(*s));
     CartData *cart = malloc(sizeof(*cart));
     uint8_t *buffer = malloc(CV_BLOCK_SIZE);
     u32 exit_mode = GODMODE_EXIT_POWEROFF;
-    if (!s || !cart || !buffer) {
+    if (!s || !cart || !buffer || !frame || !previous_frame) {
         ShowPrompt(false, "CartVerity: out of memory.");
     } else {
         bool ready = false;
@@ -280,6 +328,7 @@ u32 CartVerityMain(int entrypoint) {
                 const u32 keys = InputWait(0);
                 if (keys & BUTTON_START) { exit_mode = GODMODE_EXIT_REBOOT; goto exit; }
                 if (keys & BUTTON_B) goto exit;
+                if (keys & BUTTON_Y) { configure(s); restart = true; continue; }
                 if ((keys & BUTTON_X) && s->view.stage == CV_STAGE_RESULT) {
                     s->view.page = (s->view.page + 1) % 3; draw(s);
                 }
@@ -293,6 +342,7 @@ u32 CartVerityMain(int entrypoint) {
 exit:
     if (s && s->log_open) log_close(s);
     free(buffer); free(cart); free(s);
+    free(frame); free(previous_frame);
     DeinitSDCardFS();
     return exit_mode;
 }

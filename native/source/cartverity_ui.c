@@ -66,12 +66,32 @@ void cv_draw(const CvPainter *p, const CvView *v) {
     text(p, 0, 12, 218, r->regions_changed ? RED : MUTED,
         "Changed: %lu   Region size: 1 MiB", (unsigned long)r->regions_changed);
 
+    if (v->stage == CV_STAGE_SETTINGS && v->settings) {
+        const CvSettings *s = v->settings;
+        static const char *brightness[] = {"Auto", "Low", "Medium", "High", "Maximum"};
+        static const char *reference[] = {"Auto", "Require", "Ignore"};
+        static const char *pages[] = {"Summary", "SHA-1", "SD report"};
+        text(p, 1, 12, 12, ACCENT, "SESSION SETTINGS");
+        text(p, 1, 12, 38, MUTED, "Up/Down select  Left/Right change");
+        text(p, 1, 12, 69, v->selected_setting == 0 ? ACCENT : WHITE,
+            "%c Refresh: %u ms", v->selected_setting == 0 ? '>' : ' ', cv_refresh_ms(s));
+        text(p, 1, 12, 94, v->selected_setting == 1 ? ACCENT : WHITE,
+            "%c Brightness: %s", v->selected_setting == 1 ? '>' : ' ', brightness[s->brightness < 5 ? s->brightness : 2]);
+        text(p, 1, 12, 119, v->selected_setting == 2 ? ACCENT : WHITE,
+            "%c Reference: %s", v->selected_setting == 2 ? '>' : ' ', reference[s->reference < 3 ? s->reference : 0]);
+        text(p, 1, 12, 144, v->selected_setting == 3 ? ACCENT : WHITE,
+            "%c Result page: %s", v->selected_setting == 3 ? '>' : ' ', pages[s->result_page < 3 ? s->result_page : 0]);
+        text(p, 1, 12, 177, MUTED, "Applies until power off / reboot.");
+        text(p, 1, 12, 194, MUTED, "Scan always reads twice.");
+        text(p, 1, 12, 218, WHITE, "B / Y  Back    X  Reset defaults");
+        return;
+    }
     if (v->stage == CV_STAGE_RESULT && v->page == 1) {
         text(p, 1, 12, 12, ACCENT, "SHA-1 FINGERPRINTS");
         text(p, 1, 12, 38, MUTED, "Pass 1"); digest(p, r->digest[0], r->complete[0], 54);
         text(p, 1, 12, 94, MUTED, "Pass 2"); digest(p, r->digest[1], r->complete[1], 110);
         text(p, 1, 12, 163, MUTED, "Reference: %s", v->reference_present ? "supplied" : "absent");
-        text(p, 1, 12, 213, WHITE, "X  Next page");
+        text(p, 1, 12, 213, WHITE, "X  Next page   Y  Settings");
         return;
     }
     if (v->stage == CV_STAGE_RESULT && v->page == 2) {
@@ -81,7 +101,7 @@ void cv_draw(const CvPainter *p, const CvView *v) {
         for (unsigned i = 0; v->log_path[i] && i < 160; i += 32)
             text(p, 1, 12, 64+(int)(i/32)*16, WHITE, "%.32s", v->log_path+i);
         text(p, 1, 12, 180, MUTED, "No ROM dump was saved.");
-        text(p, 1, 12, 213, WHITE, "X  Back to result");
+        text(p, 1, 12, 213, WHITE, "X  Result   Y  Settings");
         return;
     }
     const char *title = "READY TO CHECK";
@@ -115,7 +135,9 @@ void cv_draw(const CvPainter *p, const CvView *v) {
             text(p, 1, 12, 134, v->log_saved ? ACCENT : RED,
                  v->log_saved ? "SD log saved." : "SD LOG FAILED.");
     }
+    if (v->stage != CV_STAGE_SCANNING)
+        text(p, 1, 12, 153, WHITE, "Y  Settings");
     text(p, 1, 12, 177, MUTED, "Consistency alone does not");
     text(p, 1, 12, 191, MUTED, "establish known-good data.");
-    text(p, 1, 12, 222, MUTED, "v0.2.0-alpha.1 / experimental");
+    text(p, 1, 12, 222, MUTED, "v0.2.0-alpha.2 / experimental");
 }

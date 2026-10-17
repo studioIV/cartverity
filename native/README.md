@@ -10,7 +10,7 @@ The original `.gm9` script remains available separately.
 ## Install
 
 Download the experimental native bundle from the
-[v0.2.0-alpha.1 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.1).
+[v0.2.0-alpha.2 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.2).
 It includes the firmware, complete corresponding source, build environment and checksums.
 
 On a console already running Luma3DS, copy **CartVerity.firm** to
@@ -21,6 +21,29 @@ Do not replace `boot.firm` or install this payload to NAND.
 Insert an original standard Nintendo DS cartridge before starting. Press A to
 scan, B during a scan to cancel, X at the result to cycle details. Outside a
 scan, B powers off and START reboots. Finish SD writes before removing the SD.
+
+Press **Y** outside a scan to open session settings. Up/Down selects a row;
+Left/Right or A changes it; X resets defaults; B or Y returns to cartridge
+discovery. Settings apply until power off or reboot; no settings file is written.
+
+| Setting | Choices | Default |
+| --- | --- | --- |
+| Dashboard refresh | 100, 250, 500, 1000 ms | 250 ms |
+| Brightness | Auto, Low, Medium, High, Maximum | Medium |
+| Reference policy | Auto, Require, Ignore | Auto |
+| Initial result page | Summary, SHA-1, SD report | Summary |
+
+Require blocks scanning until a valid reference is supplied. Ignore skips the
+reference file and reports consistent reads as unverified. Auto accepts no
+reference but blocks a malformed/unreadable reference. Changing settings after
+a result returns to the ready screen; its SD report remains saved.
+
+Frames are drawn completely in RAM and only changed RGB565 pixels are sent to
+the screens. This removes repeated visible full-screen clears, including
+redrawing the unchanged bottom screen on each scan update. It is incremental
+presentation, not hardware VBlank page flipping; physical testing is required
+to assess any remaining tearing. Refresh rate changes display frequency only;
+read blocks and cancellation checks continue at their normal rate.
 
 ## Dashboard and checks
 
@@ -75,7 +98,7 @@ build environment. From the repository root:
 ```sh
 python3 tools/prepare_native.py --out build/godmode9
 cd build/godmode9
-make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.1
+make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.2
 ```
 
 `--source-zip` allows an offline official archive; its SHA-256 must match the
