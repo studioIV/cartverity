@@ -9,9 +9,9 @@ A standalone Nintendo DS cartridge integrity checker for the Nintendo 3DS
 family, developed for New Nintendo 3DS XL. It boots directly into a dual-screen
 dashboard built from GodMode9 2.2.3. No script execution or file browser is needed.
 
-**Current standalone release: v0.2.0-alpha.3 (experimental).**
-[Download CartVerity.firm](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.3/CartVerity.firm)
-or open the [release and checksums](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.3).
+**Current standalone release: v0.2.0-alpha.4 (experimental).**
+[Download CartVerity.firm](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.4/CartVerity.firm)
+or open the [release and checksums](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.4).
 
 ## Start here
 
@@ -46,7 +46,7 @@ install custom firmware. Detailed instructions are in [installation](docs/INSTAL
 - Renders in RAM and publishes changed pixels to reduce visible redraw flicker.
 - Offers **Y-button settings** for refresh, brightness, reference policy and
   the initial result page. Settings last until power off or reboot.
-- Optionally compares a supplied per-game reference; saves unique SD text logs.
+- Compares per-game references or an imported database; saves unique SD text logs.
 - Shows **by studioIV** on the top screen across all pages.
 
 The native build bypasses GodMode9's save-chip capacity probe. It writes only
@@ -61,20 +61,33 @@ Standard DS cartridges up to 512 MiB are accepted. DSi-enhanced and 3DS
 cartridges are rejected; special-storage/flashcart compatibility is not claimed.
 See [limits and interpretation](docs/LIMITATIONS.md).
 
-## References available today
+## Offline reference database
 
-The app loads one 20-byte binary `.nds.sha1` sidecar per cartridge from
-`SD:/gm9/support/dscheck/`. The desktop helper creates that file from a SHA-1
-you supply. [Follow the reference tutorial](docs/REFERENCES.md).
+Import a user-downloaded **No-Intro Nintendo DS XML DAT** with the supplied
+`tools/import_dat.py`, then put `nds.cvdb` in `SD:/gm9/support/cartverity/`.
+After two consistent passes, CartVerity looks for an exact SHA-1 **and size**
+match and shows `MATCHES_DATABASE` with the catalog title. Missing entries
+remain unverified. Existing per-game `.nds.sha1` files take priority.
 
-Automatic database lookup, DAT importing and a bundled known-good hash database
-are **not implemented**. A personal baseline records an observation; it is not
-independent proof that a cartridge is correct.
+Reference metadata/hashes originate from **[No-Intro](https://no-intro.org/)**
+and its **[official DAT-o-MATIC](https://datomatic.no-intro.org/)** service;
+[DS DAT notes](https://wiki.no-intro.org/index.php?title=Nintendo_-_Nintendo_DS_dat_notes)
+explain representation context. No real DAT/database or ROMs are bundled.
+Download a compatible full decrypted/normalized DAT from the official source.
+The importer records its name, version, original SHA-256 and source URL; the
+app displays these on a reference-source page and records them in logs.
+Attribution is recorded, not authenticated. CartVerity is not a No-Intro product.
+
+[Import/setup tutorial](docs/REFERENCES.md) · [source and attribution](docs/REFERENCE_SOURCES.md)
+· [binary database format](docs/REFERENCE_DATABASE_FORMAT.md).
+The release includes a `CartVerity-reference-tools.zip` package with both
+import and single-reference helpers. Python 3.10+ is needed only on the PC.
 
 ## Validation and development
 
-The current release passed its ARM build, compiled host scan/display/settings
-tests, script/helper matrix and native initializer save-access audit. Host tests
+The alpha.3 release passed its ARM build, compiled host scan/display/settings
+tests, script/helper matrix and native initializer save-access audit. Alpha.4
+adds the importer and database validation/lookup tests; see Actions for its run. Host tests
 and a successful build do not certify physical hardware behavior. The user
 reported native display flicker; alpha.2 introduced incremental presentation.
 Confirmation of the visual improvement and a complete native hardware test

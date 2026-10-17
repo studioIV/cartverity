@@ -29,6 +29,12 @@ typedef struct {
     const CvResult *result;
     const CvSettings *settings;
     unsigned selected_setting;
+    int reference_database;
+    char reference_source[80];
+    char reference_version[48];
+    char reference_title[128];
+    char reference_url[72];
+    char reference_dat_sha256[65];
 } CvView;
 
 void cv_draw(const CvPainter *paint, const CvView *view);

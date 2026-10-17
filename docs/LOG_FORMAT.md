@@ -21,7 +21,7 @@ failed scan. Missing completion means the report may be interrupted or partial.
 | --- | --- |
 | `format` | `cartverity-native/1` |
 | `state` | Initial INCOMPLETE; final COMPLETE if report writing reaches the end |
-| `version` | Native app version, such as `0.2.0-alpha.3` |
+| `version` | Native app version, such as `0.2.0-alpha.4` |
 | `godmode9_base` | Pinned upstream base, `2.2.3` |
 | `display_refresh_ms` | Configured display update interval |
 | `reference_policy` | AUTO, REQUIRE or IGNORE |
@@ -29,8 +29,13 @@ failed scan. Missing completion means the report may be interrupted or partial.
 | `game_code_hex`, `revision_hex` | Raw header identifiers encoded in hexadecimal |
 | `rom_bytes` | Full normalized ROM length |
 | `reference_path` | Candidate reference path; present even if none was loaded |
-| `reference_state` | NOT_PROVIDED or SUPPLIED_UNAUTHENTICATED |
+| `reference_state` | NOT_PROVIDED, SUPPLIED_UNAUTHENTICATED or DATABASE_LOADED |
 | `reference_sha1` | Supplied digest if loaded; not proof that comparison completed |
+| `database_path`, `database_entries` | Validated offline database path and entry count, if used |
+| `reference_source`, `reference_version` | Imported source label (No-Intro and DAT name) and version |
+| `reference_source_url`, `reference_dat_sha256` | Official source URL and SHA-256 of the original XML DAT |
+| `database_result` | NOT_USED, NOT_COMPARED, MATCH or NO_MATCH |
+| `reference_title` | Matched database title, only on an exact SHA-1 and size match |
 | `region_size` | Logical comparison size, 1048576 bytes |
 | `scope` | Normalized view, per-pass initialization and bus-reporting limitation |
 | `result` | Outcome described in [usage](USAGE.md#understand-the-result) |
@@ -44,7 +49,11 @@ failed scan. Missing completion means the report may be interrupted or partial.
 The native format has no `rom=`, `script_version=`, `read_result=` or
 `reference_result=` fields. Use `reference_path` for the exact sidecar filename.
 Ignore policy records NOT_PROVIDED because no reference was loaded; check
-`reference_policy` to distinguish intentional skipping.
+`reference_policy` to distinguish intentional skipping. DATABASE_LOADED does
+not mean a match: check `database_result` and final `result`. MATCH produces
+MATCHES_DATABASE. NO_MATCH retains CONSISTENT_UNVERIFIED; it is not a damage
+verdict. Cancelled/failed/differing reads leave NOT_COMPARED. No source metadata
+authenticates the input. [Attribution](REFERENCE_SOURCES.md).
 
 Logs are flushed before scanning and synced/closed afterward, with write results
 checked. A storage fault may still truncate or corrupt them. The screen only

@@ -73,3 +73,18 @@ Include app version, console model, cartridge code/revision if known, relevant
 settings, expected/observed behavior and a redacted native text log. Say whether
 you used the standalone payload or legacy script. Do not attach ROMs, saves,
 keys or console serials. [Testing checklist](TESTING.md).
+
+## Database invalid, not found or no match
+
+Alpha.4 reads `SD:/gm9/support/cartverity/nds.cvdb`, not a DAT/ZIP placed directly
+on the SD. Run [the importer](REFERENCES.md) first, use Auto or Require, and
+remember a per-game sidecar takes priority. Ignore skips both sources.
+
+Invalid size, metadata, CRC or record ordering blocks the scan. Recreate the
+database from your retained official DAT; do not edit binary bytes manually.
+A different existing output is preserved by the importer: back it up before
+replacing it. A valid database with no SHA-1-and-size match is still unverified,
+not a damaged-cartridge verdict. Check dump representation and catalog coverage.
+
+No-Intro is the catalog source; CartVerity does not bundle real catalog data or
+authenticate imported provenance. [Source attribution](REFERENCE_SOURCES.md).

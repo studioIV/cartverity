@@ -8,6 +8,8 @@ from pathlib import Path
 import sys
 import unittest
 import zlib
+import struct
+import importlib.util
 
 LIBRARY = C.CDLL(str(Path(sys.argv.pop(1)).resolve()))
 U8 = C.c_uint8
@@ -52,7 +54,15 @@ class View(C.Structure):
                 ('stage', C.c_uint), ('page', C.c_uint), ('reference', C.c_int),
                 ('saved', C.c_int), ('detail', C.c_char * 80), ('path', C.c_char * 192),
                 ('result', C.POINTER(Result)), ('settings', C.POINTER(Settings)),
-                ('selected_setting', C.c_uint)]
+                ('selected_setting', C.c_uint), ('reference_database', C.c_int),
+                ('reference_source', C.c_char * 80), ('reference_version', C.c_char * 48),
+                ('reference_title', C.c_char * 128), ('reference_url', C.c_char * 72),
+                ('reference_dat_sha256', C.c_char * 65)]
+
+
+class Database(C.Structure):
+    _fields_ = [('data', PTR), ('count', U32), ('source', C.c_char_p),
+                ('version', C.c_char_p), ('url', C.c_char_p), ('dat_sha256', PTR)]
 
 
 RECT = C.CFUNCTYPE(None, C.c_void_p, C.c_int, C.c_int, C.c_int, C.c_int, C.c_int, U32)
@@ -76,6 +86,10 @@ LIBRARY.cv_refresh_ms.restype = C.c_uint
 LIBRARY.cv_brightness.argtypes = [C.POINTER(Settings)]
 LIBRARY.cv_brightness.restype = C.c_int
 LIBRARY.cv_setting_change.argtypes = [C.POINTER(Settings), C.c_uint, C.c_int]
+LIBRARY.cv_db_validate.argtypes = [PTR, C.c_size_t, C.POINTER(Database)]
+LIBRARY.cv_db_validate.restype = C.c_int
+LIBRARY.cv_db_find.argtypes = [C.POINTER(Database), PTR, U32]
+LIBRARY.cv_db_find.restype = C.c_char_p
 
 
 def run_scan(data, second=None, reference=None, fault=None, cancel=None, fail_begin=0):
@@ -105,6 +119,48 @@ def run_scan(data, second=None, reference=None, fault=None, cancel=None, fail_be
 
 
 class NativeTests(unittest.TestCase):
+    def test_python_imported_database_is_readable_by_c_and_exact_lookup(self):
+        spec = importlib.util.spec_from_file_location('dat_tool', Path(__file__).resolve().parents[2]/'tools/import_dat.py')
+        tool = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(tool)
+        xml = (b'<datafile><header><name>Nintendo - Nintendo DS (Decrypted)</name>'
+               b'<author>No-Intro</author><version>SYNTHETIC</version></header>'
+               b'<game name="Synthetic test"><rom name="test.nds" size="512" sha1="'+b'11'*20+b'"/></game>'
+               b'<game name="Last record"><rom name="last.nds" size="1024" sha1="'+b'22'*20+b'"/></game></datafile>')
+        data, _ = tool.convert(xml)
+        buffer = (U8*len(data)).from_buffer_copy(data)
+        db = Database()
+        self.assertTrue(LIBRARY.cv_db_validate(buffer, len(data), C.byref(db)))
+        self.assertEqual(db.count, 2)
+        self.assertIn(b'No-Intro', db.source)
+        digest = (U8*20).from_buffer_copy(b'\x11'*20)
+        self.assertEqual(LIBRARY.cv_db_find(C.byref(db), digest, 512), b'Synthetic test')
+        last = (U8*20).from_buffer_copy(b'\x22'*20)
+        self.assertEqual(LIBRARY.cv_db_find(C.byref(db), last, 1024), b'Last record')
+        self.assertIsNone(LIBRARY.cv_db_find(C.byref(db), digest, 1024))
+        digest[0] ^= 1
+        self.assertIsNone(LIBRARY.cv_db_find(C.byref(db), digest, 512))
+        for length in (0, 8, 255, len(data)-1):
+            self.assertFalse(LIBRARY.cv_db_validate(buffer, length, C.byref(db)))
+        for offset in (0, 8, 12, 16, 24, 104, 152, 184, 256, 280, len(data)-1):
+            broken = bytearray(data); broken[offset] ^= 1
+            value = (U8*len(broken)).from_buffer_copy(broken)
+            self.assertFalse(LIBRARY.cv_db_validate(value, len(broken), C.byref(db)))
+
+    def test_database_rejects_semantic_corruption_even_with_valid_crc(self):
+        spec = importlib.util.spec_from_file_location('dat_tool', Path(__file__).resolve().parents[2]/'tools/import_dat.py')
+        tool = importlib.util.module_from_spec(spec); spec.loader.exec_module(tool)
+        xml = (b'<datafile><header><name>Nintendo - Nintendo DS (Decrypted)</name><author>No-Intro</author>'
+               b'<version>SYNTHETIC</version></header><game name="Test"><rom name="t.nds" size="512" sha1="'
+               +b'11'*20+b'"/></game></datafile>')
+        data, _ = tool.convert(xml)
+        for offset, replacement in ((20,b'\1'), (24,b'\n'), (256+20,struct.pack('<I',513)),
+                                    (256+24,b'\x01'), (256+152,b'\1')):
+            broken = bytearray(data); broken[offset:offset+len(replacement)] = replacement
+            struct.pack_into('<I',broken,16,0)
+            struct.pack_into('<I',broken,16,zlib.crc32(broken))
+            value=(U8*len(broken)).from_buffer_copy(broken)
+            self.assertFalse(LIBRARY.cv_db_validate(value,len(broken),C.byref(Database())))
     def test_present_does_not_clear_or_rewrite_unchanged_pixels(self):
         target = (C.c_uint16 * 12)(*[65535]*12)
         previous = (C.c_uint16 * 12)()
@@ -220,8 +276,8 @@ class NativeTests(unittest.TestCase):
         options = Settings(3, 4, 2, 2)
         view.settings = C.pointer(options)
         for stage in range(5):
-            for status in range(10):
-                for page in range(3):
+            for status in range(11):
+                for page in range(4):
                     view.stage, view.page, out.status = stage, page, status
                     LIBRARY.cv_draw(C.byref(paint), C.byref(view))
         self.assertEqual(failures, [])

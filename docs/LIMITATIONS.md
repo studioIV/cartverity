@@ -39,8 +39,14 @@ Consistent repeated reads can include stable corruption. A match means agreement
 with the supplied digest, not authenticated provenance. A mismatch can mean a
 different region/revision, length, padding, secure-area representation or wrong
 reference, as well as differing cartridge data. SHA-1 provides archival
-compatibility, not adversarial authenticity. No online lookup or DAT/database
-import exists in this release. [Reference instructions](REFERENCES.md).
+compatibility, not adversarial authenticity. Alpha.4 imports No-Intro XML DATs
+on a PC and performs offline SHA-1-and-size lookup on the console. No network
+lookup or real catalog is bundled. Missing database entries remain unverified;
+the app does not guess an expected entry by title/revision before scanning.
+DAT format acknowledgement cannot prove byte compatibility; database hashes
+must describe the same full normalized view. Source metadata is recorded, not
+authenticated. [Reference instructions](REFERENCES.md) and
+[source attribution](REFERENCE_SOURCES.md).
 
 ## Display, logging and validation
 

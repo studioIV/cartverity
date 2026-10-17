@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0-alpha.4 - 2026-10-18
+
+- Import user-downloaded No-Intro Nintendo DS XML DATs into a bounded offline
+  database with source name/version, original DAT SHA-256 and official URL.
+- Validate database bounds, strings, ordering, reserved bytes and CRC32; require
+  exact whole-ROM SHA-1 and size after two consistent reads for MATCHES_DATABASE.
+- Keep missing database entries unverified, and per-game sidecars first priority.
+  Add reference-source details and provenance fields in scan logs.
+- Package reference tools and document No-Intro attribution, format compatibility,
+  source boundaries and setup. No real DAT, reference catalog or ROMs are bundled.
+- Add importer, cross-language lookup/corruption and source-page tests.
+
 ## Documentation refresh — 2026-10-18
 
 - Make standalone alpha.3 the main README/install/download path.

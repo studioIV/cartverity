@@ -82,7 +82,7 @@ def prepare(data, out):
     shutil.copyfile(ROOT / "LICENSE", out / "LICENSE.CartVerity")
     shutil.copyfile(ROOT / "native/README.md", out / "BUILD.CartVerity.md")
     manifest = {"godmode9_commit": COMMIT, "upstream_zip_sha256": SHA256,
-                "build": "make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.3",
+                "build": "make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.4",
                 "files": {str(p.relative_to(out)).replace("\\", "/"):
                           hashlib.sha256(p.read_bytes()).hexdigest()
                           for p in sorted(out.rglob("*")) if p.is_file()}}

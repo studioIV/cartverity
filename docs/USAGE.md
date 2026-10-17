@@ -10,7 +10,7 @@
    ROM twice. It reinitializes cartridge access before each pass.
 4. Leave the cartridge and SD inserted. **B** cancels after the current cartridge
    operation returns. A cancelled scan is recorded as cancelled, not passed.
-5. Read the result. **X** cycles summary, SHA-1 and SD report pages.
+5. Read the result. **X** cycles summary, SHA-1, SD report and reference-source pages.
 
 No ROM dump is saved. No repair or cartridge refresh operation is performed.
 
@@ -59,7 +59,7 @@ rediscovers the cartridge; completed SD reports are retained.
 | --- | --- | --- |
 | Refresh | 100, 250, 500, 1000 ms | 250 ms |
 | Brightness | Auto, Low, Medium, High, Maximum | Medium |
-| Reference | Auto, Require, Ignore | Auto |
+| Reference | Auto (sidecar, then database), Require input, Ignore both | Auto |
 | Result page | Summary, SHA-1, SD report | Summary |
 
 Refresh controls UI update frequency, not read coverage. Cancellation is checked
@@ -74,6 +74,7 @@ All settings keep two full passes; there is no abbreviated quick-pass mode.
 | --- | --- |
 | READS CONSISTENT / `CONSISTENT_UNVERIFIED` | Both reads agree; no reference was compared |
 | REFERENCE MATCH / `MATCHES_SUPPLIED_REFERENCE` | Both reads agree with the supplied hash; its source is not authenticated |
+| DATABASE MATCH / `MATCHES_DATABASE` | Both reads agree with a database SHA-1 and size; source details and logs record DAT provenance |
 | REFERENCE DIFFERS / `REFERENCE_MISMATCH` | Reads agree with each other but differ from the supplied hash |
 | READS DIFFER / `INCONSISTENT_READS` | Whole hashes or logical-region comparisons disagree |
 | SCAN CANCELLED / `CANCELLED` | The user cancelled; progress may be partial |
@@ -81,6 +82,11 @@ All settings keep two full passes; there is no abbreviated quick-pass mode.
 | SCAN INCOMPLETE / `SHORT_READ` | The scan core received fewer/more bytes than requested |
 | SCAN INCOMPLETE / `INVALID_INPUT` | Internal scan inputs were invalid; report the log/version |
 | CANNOT START | Discovery, reference or log setup prevented a scan |
+
+A valid database with no exact entry leaves `CONSISTENT_UNVERIFIED` and records
+`database_result=NO_MATCH`. This does not mean the cartridge is damaged. Require
+allows a loaded valid database but cannot guarantee that it contains your game.
+Sidecars take priority; Ignore skips both inputs. [Reference setup](REFERENCES.md).
 
 The native DS adapter cannot measure every underlying bus transfer's length;
 `SHORT_READ` handling in the core does not imply complete hardware fault detection.

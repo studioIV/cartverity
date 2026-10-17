@@ -9,7 +9,7 @@ does not install custom firmware. Keep your existing working GodMode9 payload.
 ## Install
 
 1. Download `CartVerity.firm` from the
-   [v0.2.0-alpha.3 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.3).
+   [v0.2.0-alpha.4 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.4).
    The release also contains checksums, build information, licenses and complete
    corresponding source. You only need the `.firm` on the console to scan.
 2. Power off the console. Connect its SD card to your computer.
@@ -22,7 +22,8 @@ does not install custom firmware. Keep your existing working GodMode9 payload.
 ```text
 SD:/
   luma/payloads/CartVerity.firm
-  gm9/support/dscheck/<exact-ROM-name>.nds.sha1  (optional)
+  gm9/support/cartverity/nds.cvdb              (optional imported database)
+  gm9/support/dscheck/<exact-ROM-name>.nds.sha1  (optional per-game reference)
   gm9/out/dscheck/native_*.txt                   (created by scans)
 ```
 
@@ -45,7 +46,8 @@ file. This checks agreement with the downloaded release, not cartridge integrity
 
 1. Power off, remove the SD and back up the old payload if you want a rollback.
 2. Replace only `luma/payloads/CartVerity.firm` with the new release's file.
-3. Keep existing `gm9/out/dscheck` logs and `gm9/support/dscheck` references.
+3. Keep existing `gm9/out/dscheck` logs, `gm9/support/dscheck` references and
+   `gm9/support/cartverity/nds.cvdb` if you already imported one.
 4. Boot CartVerity and check its displayed version. Alpha.3 includes `by studioIV`;
    alpha.2 and later include the Y settings menu and incremental redraws.
 

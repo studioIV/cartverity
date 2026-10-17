@@ -4,6 +4,14 @@ Target: [GodMode9 v2.2.3](https://github.com/d0k3/GodMode9/releases/tag/v2.2.3),
 
 ## Standalone integration
 
+- Reference data is user-imported from [No-Intro](https://no-intro.org/) via
+  [DAT-o-MATIC](https://datomatic.no-intro.org/). [DS DAT notes](https://wiki.no-intro.org/index.php?title=Nintendo_-_Nintendo_DS_dat_notes)
+  describe representation context. CartVerity does not bundle that catalog or
+  authenticate its author field. [Attribution and recorded provenance](REFERENCE_SOURCES.md).
+- `tools/import_dat.py` converts compatible XML metadata to the documented
+  [CVDB0001 format](REFERENCE_DATABASE_FORMAT.md). `cartverity_database.c`
+  validates the RAM snapshot and looks up exact SHA-1/size keys; no title/revision
+  guessing determines an expected digest.
 - `tools/prepare_native.py` verifies the complete upstream ZIP SHA-256, adds a dedicated entrypoint and CARTVERITY_APP build flag, copies native sources, and conditionally removes the initializer's save-detection blocks.
 - [card_spi.c](https://github.com/d0k3/GodMode9/blob/0ee81b7738401b3e9f0b92b3b11159936222e542/arm9/source/gamecart/card_spi.c): `_SPIIsDataMirrored` writes/restores a save byte during some EEPROM capacity probes. Native initialization must bypass it; the stock script cannot.
 - [ui.c](https://github.com/d0k3/GodMode9/blob/0ee81b7738401b3e9f0b92b3b11159936222e542/arm9/source/common/ui.c) and its header define framebuffer drawing and the bundled font. The native adapter renders glyphs in RAM before incremental presentation.

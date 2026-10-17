@@ -1,6 +1,6 @@
 # Standalone tutorials
 
-These tutorials cover **CartVerity v0.2.0-alpha.3** and its `.firm` app.
+These tutorials cover **CartVerity v0.2.0-alpha.4** and its `.firm` app.
 The `.gm9` script has [separate legacy instructions](LEGACY_SCRIPT.md).
 
 ## First time
@@ -28,7 +28,7 @@ with known-good data, [add a trusted reference](REFERENCES.md).
 
 ## Current boundaries
 
-The app is an experimental read-only checker. It does not repair DS cartridges,
-download reference hashes, import DAT files or automatically identify a cartridge
-against a database. [Reference support](REFERENCES.md) describes what is
+The app is an experimental read-only checker. It supports offline database
+lookup after importing a compatible No-Intro XML DAT on a PC. It does not repair
+DS cartridges, download hashes on-console or bundle real catalog data. [Reference support](REFERENCES.md) describes what is
 implemented today. [Limits](LIMITATIONS.md) explains how to interpret results.

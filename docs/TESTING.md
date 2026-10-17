@@ -1,6 +1,14 @@
 # Standalone testing and hardware reports
 
-## Current evidence
+## Database tests in alpha.4
+
+The Python importer tests use synthetic No-Intro-shaped XML only. Native tests
+consume the actual Python-generated binary in C and check lookup, exact size,
+boundary records, truncation, CRC corruption and malformed fields even with a
+recomputed checksum. No real No-Intro data is present in the fixtures.
+Real-DAT representation agreement on a known cartridge remains a hardware check.
+
+## Earlier release evidence
 
 Alpha.3 passed its [native CI run](https://github.com/studioIV/cartverity/actions/runs/39075916959): compiled C host tests, ARM firmware build, packaging and active initializer save-access audit. The 11 native tests cover synthetic changes/faults, references, cancellation, settings, metrics, drawing bounds and unchanged-pixel preservation. They do not emulate a cartridge or execute firmware on a console.
 
@@ -13,7 +21,7 @@ A separate user-supplied legacy script log confirms one N3DS run with GodMode9 v
 From the repository root, with a C compiler and Python 3.10+:
 
 ```sh
-cc -shared -fPIC -O2 -std=c11 -Wall -Wextra -Werror native/source/cartverity_scan.c native/source/cartverity_ui.c native/source/cartverity_display.c -o /tmp/cartverity.so
+cc -shared -fPIC -O2 -std=c11 -Wall -Wextra -Werror native/source/cartverity_scan.c native/source/cartverity_ui.c native/source/cartverity_display.c native/source/cartverity_database.c -o /tmp/cartverity.so
 python3 native/tests/test_native.py /tmp/cartverity.so
 ```
 
@@ -33,7 +41,7 @@ python -m unittest discover -s tests -v
 python tools/check_upstream.py
 ```
 
-The last command downloads pinned source files; `--source-dir PATH` enables an existing cache. The 98-test Python suite covers the old script model and desktop helper, not native hardware. Platform permissions may skip its symlink edge case.
+The last command downloads pinned source files; `--source-dir PATH` enables an existing cache. The 103-test Python suite covers the old script model, sidecar helper and DAT importer, not native hardware. Platform permissions may skip its symlink edge case.
 
 ## Native hardware checklist
 

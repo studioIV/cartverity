@@ -2,17 +2,17 @@
 
 by **studioIV**
 
-The current app is **v0.2.0-alpha.3**, built from GodMode9 2.2.3 at commit
+The current app is **v0.2.0-alpha.4**, built from GodMode9 2.2.3 at commit
 `0ee81b7738401b3e9f0b92b3b11159936222e542` plus this directory's sources.
 
 ## User guides
 
 Start with the [standalone tutorials](../docs/TUTORIALS.md):
 [install/update](../docs/INSTALL.md), [controls/settings](../docs/USAGE.md),
-[references](../docs/REFERENCES.md), [troubleshooting](../docs/TROUBLESHOOTING.md),
+[references](../docs/REFERENCES.md), [reference data sources](../docs/REFERENCE_SOURCES.md), [troubleshooting](../docs/TROUBLESHOOTING.md),
 [logs](../docs/LOG_FORMAT.md) and [limits](../docs/LIMITATIONS.md).
 
-Download the [current experimental release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.3).
+Download the [current experimental release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.4).
 The old `.gm9` script has [separate documentation](../docs/LEGACY_SCRIPT.md).
 Native physical validation remains separate from build/host tests.
 
@@ -33,7 +33,7 @@ build environment. From the repository root:
 ```sh
 python3 tools/prepare_native.py --out build/godmode9
 cd build/godmode9
-make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.3
+make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.4
 ```
 
 `--source-zip` allows an offline official archive; its SHA-256 must match the

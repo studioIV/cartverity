@@ -5,6 +5,7 @@
 #include "cartverity_app.h"
 #include "cartverity_scan.h"
 #include "cartverity_ui.h"
+#include "cartverity_database.h"
 #include "godmode.h"
 #include "ui.h"
 #include "hid.h"
@@ -19,8 +20,9 @@
 #include "power.h"
 #include <stdarg.h>
 
-#define CV_VERSION "0.2.0-alpha.3"
+#define CV_VERSION "0.2.0-alpha.4"
 #define CV_OUTPUT "0:/gm9/out/dscheck"
+#define CV_DATABASE "0:/gm9/support/cartverity/nds.cvdb"
 #define CV_PIXELS ((400u+320u)*240u)
 static CvSettings settings = {1, 2, 0, 0};
 static uint16_t *frame, *previous_frame;
@@ -45,6 +47,9 @@ typedef struct {
     bool finished;
     char reference_path[160];
     uint8_t reference[20];
+    uint8_t *database_data;
+    CvDatabase database;
+    const char *database_result;
 } CvSession;
 
 static void paint_rect(void *unused, int screen, int x, int y, int w, int h, uint32_t color) {
@@ -145,11 +150,36 @@ static bool error(CvSession *s, const char *message) {
     return false;
 }
 
+static int load_database(CvSession *s) {
+    FILINFO info; FIL file;
+    FRESULT result = fvx_stat(CV_DATABASE, &info);
+    if (result == FR_NO_FILE || result == FR_NO_PATH) return 0;
+    if (result != FR_OK || (info.fattrib & AM_DIR) || info.fsize < CV_DB_HEADER || info.fsize > CV_DB_MAX_SIZE)
+        { error(s, "Invalid reference database file."); return -1; }
+    s->database_data = malloc((size_t)info.fsize);
+    if (!s->database_data) { error(s, "Not enough RAM for reference database."); return -1; }
+    if (fvx_open(&file, CV_DATABASE, FA_READ) != FR_OK)
+        { error(s, "Cannot open reference database."); return -1; }
+    UINT got = 0;
+    bool ok = fvx_read(&file, s->database_data, (UINT)info.fsize, &got) == FR_OK && got == info.fsize;
+    if (fvx_close(&file) != FR_OK) ok = false;
+    if (!ok || !cv_db_validate(s->database_data, (size_t)info.fsize, &s->database))
+        { error(s, "Database invalid or checksum failed."); return -1; }
+    s->view.reference_present = s->view.reference_database = 1;
+    snprintf(s->view.reference_source, sizeof(s->view.reference_source), "%s", s->database.source);
+    snprintf(s->view.reference_version, sizeof(s->view.reference_version), "%s", s->database.version);
+    snprintf(s->view.reference_url, sizeof(s->view.reference_url), "%s", s->database.url);
+    encode_hex(s->database.dat_sha256, 32, s->view.reference_dat_sha256);
+    s->database_result = "NOT_COMPARED";
+    return 1;
+}
+
 static bool discover(CvSession *s) {
     s->result.status = CV_READY;
     s->view.pass = 1;
     s->view.stage = CV_STAGE_READY;
     s->view.result = &s->result;
+    s->database_result = "NOT_USED";
     strcpy(s->view.name, "Waiting for a DS cartridge");
     if (!InitSDCardFS()) return error(s, "Console SD is not available.");
     if (!CART_STATE || InitCartRead(s->cart) != 0)
@@ -179,8 +209,11 @@ static bool discover(CvSession *s) {
     FIL reference; FILINFO info;
     FRESULT result = settings.reference == 2 ? FR_NO_FILE : fvx_stat(s->reference_path, &info);
     if (result == FR_NO_FILE || result == FR_NO_PATH) {
-        if (settings.reference == 1) return error(s, "A reference is required. Add its file.");
-        strcpy(s->view.detail, settings.reference == 2 ? "Reference comparison disabled." : "Ready. No known-good reference.");
+        int database = settings.reference == 2 ? 0 : load_database(s);
+        if (database < 0) return false;
+        if (!database && settings.reference == 1) return error(s, "Add a sidecar or reference database.");
+        strcpy(s->view.detail, database ? "Ready. Database lookup after scanning." :
+            settings.reference == 2 ? "Reference comparison disabled." : "Ready. No known-good reference.");
     } else {
         if (result != FR_OK || (info.fattrib & AM_DIR) || info.fsize != 20)
             return error(s, "Reference must be 20 binary bytes.");
@@ -191,6 +224,7 @@ static bool discover(CvSession *s) {
         if (fvx_close(&reference) != FR_OK) ok = false;
         if (!ok) return error(s, "Reference could not be read.");
         s->view.reference_present = 1;
+        strcpy(s->view.reference_source, "User-supplied SHA-1 sidecar");
         strcpy(s->view.detail, "Ready. Compare supplied reference.");
     }
     draw(s);
@@ -256,8 +290,16 @@ static void scan(CvSession *s, uint8_t *buffer) {
     log_line(s, "revision_hex=%02X", s->view.revision);
     log_line(s, "rom_bytes=%lu", (unsigned long)s->total);
     log_line(s, "reference_path=%s", s->reference_path);
-    log_line(s, "reference_state=%s", s->view.reference_present ? "SUPPLIED_UNAUTHENTICATED" : "NOT_PROVIDED");
-    if (s->view.reference_present) {
+    log_line(s, "reference_state=%s", s->view.reference_database ? "DATABASE_LOADED" :
+        s->view.reference_present ? "SUPPLIED_UNAUTHENTICATED" : "NOT_PROVIDED");
+    if (s->view.reference_database) {
+        log_line(s, "database_path=" CV_DATABASE);
+        log_line(s, "database_entries=%lu", (unsigned long)s->database.count);
+        log_line(s, "reference_source=%s", s->view.reference_source);
+        log_line(s, "reference_version=%s", s->view.reference_version);
+        log_line(s, "reference_source_url=%s", s->view.reference_url);
+        log_line(s, "reference_dat_sha256=%s", s->view.reference_dat_sha256);
+    } else if (s->view.reference_present) {
         char hash[41]; encode_hex(s->reference, 20, hash); log_line(s, "reference_sha1=%s", hash);
     }
     log_line(s, "region_size=%u", CV_REGION_SIZE);
@@ -269,10 +311,21 @@ static void scan(CvSession *s, uint8_t *buffer) {
     s->timer = timer_start(); s->last_draw = 0;
     strcpy(s->view.detail, "Two full read passes.");
     const CvCallbacks callbacks = {s, begin_pass, read_block, hash_begin, hash_update, hash_end, progress};
-    cv_scan(s->total, buffer, s->view.reference_present ? s->reference : NULL, &callbacks, &s->result);
+    cv_scan(s->total, buffer, s->view.reference_present && !s->view.reference_database ? s->reference : NULL,
+        &callbacks, &s->result);
+    if (s->view.reference_database && s->result.status == CV_CONSISTENT) {
+        const char *title = cv_db_find(&s->database, s->result.digest[0], s->total);
+        s->database_result = title ? "MATCH" : "NO_MATCH";
+        if (title) {
+            s->result.status = CV_DATABASE_MATCH;
+            snprintf(s->view.reference_title, sizeof(s->view.reference_title), "%s", title);
+        }
+    }
     s->view.elapsed_ms = timer_msec(s->timer);
     s->view.result = &s->result;
     log_line(s, "result=%s", cv_status_name(s->result.status));
+    log_line(s, "database_result=%s", s->database_result);
+    if (s->view.reference_title[0]) log_line(s, "reference_title=%s", s->view.reference_title);
     for (unsigned i = 0; i < 2; ++i) {
         log_line(s, "pass%u_bytes=%lu", i+1, (unsigned long)s->result.bytes[i]);
         if (s->result.complete[i]) {
@@ -290,7 +343,9 @@ static void scan(CvSession *s, uint8_t *buffer) {
     s->finished = true; log_close(s);
     s->view.stage = CV_STAGE_RESULT; s->view.page = settings.result_page;
     if (s->result.status == CV_CONSISTENT)
-        strcpy(s->view.detail, "No known-good reference compared.");
+        strcpy(s->view.detail, s->view.reference_database ? "No database match; still unverified." : "No known-good reference compared.");
+    else if (s->result.status == CV_DATABASE_MATCH)
+        strcpy(s->view.detail, "Both reads match a database entry.");
     else if (s->result.status == CV_REFERENCE_MATCH)
         strcpy(s->view.detail, "Both reads match the supplied SHA-1.");
     else if (s->result.status == CV_REFERENCE_MISMATCH)
@@ -320,6 +375,7 @@ u32 CartVerityMain(int entrypoint) {
     } else {
         bool ready = false;
         for (;;) {
+            free(s->database_data);
             memset(s, 0, sizeof(*s)); s->cart = cart;
             ready = discover(s);
             bool restart = false;
@@ -330,7 +386,7 @@ u32 CartVerityMain(int entrypoint) {
                 if (keys & BUTTON_B) goto exit;
                 if (keys & BUTTON_Y) { configure(s); restart = true; continue; }
                 if ((keys & BUTTON_X) && s->view.stage == CV_STAGE_RESULT) {
-                    s->view.page = (s->view.page + 1) % 3; draw(s);
+                    s->view.page = (s->view.page + 1) % 4; draw(s);
                 }
                 if (keys & BUTTON_A) {
                     if (!ready || s->view.stage != CV_STAGE_READY) restart = true;
@@ -341,6 +397,7 @@ u32 CartVerityMain(int entrypoint) {
     }
 exit:
     if (s && s->log_open) log_close(s);
+    if (s) free(s->database_data);
     free(buffer); free(cart); free(s);
     free(frame); free(previous_frame);
     DeinitSDCardFS();

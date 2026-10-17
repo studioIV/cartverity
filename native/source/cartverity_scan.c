@@ -105,7 +105,7 @@ const char *cv_status_name(CvStatus status) {
     static const char *names[] = {
         "READY", "RUNNING", "CONSISTENT_UNVERIFIED", "MATCHES_SUPPLIED_REFERENCE",
         "REFERENCE_MISMATCH", "INCONSISTENT_READS", "CANCELLED", "READ_ERROR",
-        "SHORT_READ", "INVALID_INPUT"
+        "SHORT_READ", "INVALID_INPUT", "MATCHES_DATABASE"
     };
     return (unsigned)status < sizeof(names)/sizeof(names[0]) ? names[status] : "UNKNOWN";
 }

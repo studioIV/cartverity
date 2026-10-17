@@ -2,6 +2,7 @@
 #include "cartverity_ui.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #define RGB565(r,g,b) ((((uint32_t)(r)>>3)<<11)|(((uint32_t)(g)>>2)<<5)|((uint32_t)(b)>>3))
 #define BG RGB565(10,17,29)
@@ -38,6 +39,7 @@ static void digest(const CvPainter *p, const uint8_t *hash, int complete, int y)
 void cv_draw(const CvPainter *p, const CvView *v) {
     if (!p || !p->rect || !p->text || !v || !v->result) return;
     const CvResult *r = v->result;
+    const char *reference = v->reference_database ? "database" : v->reference_present ? "sidecar" : "absent";
     CvMetrics m = cv_metrics(v->total, v->pass, v->done, v->elapsed_ms);
     p->rect(p->context, 0, 0, 0, 400, 240, BG);
     p->rect(p->context, 1, 0, 0, 320, 240, BG);
@@ -87,11 +89,28 @@ void cv_draw(const CvPainter *p, const CvView *v) {
         text(p, 1, 12, 218, WHITE, "B / Y  Back    X  Reset defaults");
         return;
     }
+    if (v->stage == CV_STAGE_RESULT && v->page == 3) {
+        text(p, 1, 12, 12, ACCENT, "REFERENCE SOURCE");
+        text(p, 1, 12, 34, WHITE, "Method: %s", reference);
+        text(p, 1, 12, 54, MUTED, "%.36s", v->reference_source);
+        text(p, 1, 12, 70, MUTED, "%.36s", v->reference_version);
+        text(p, 1, 12, 94, WHITE, "%.36s", v->reference_title);
+        if (strlen(v->reference_title) > 36)
+            text(p, 1, 12, 108, WHITE, "%.36s", v->reference_title+36);
+        text(p, 1, 12, 140, MUTED, "%.36s", v->reference_url);
+        if (v->reference_database) {
+            text(p, 1, 12, 164, MUTED, "Original DAT SHA-256:");
+            text(p, 1, 12, 180, WHITE, "%.32s", v->reference_dat_sha256);
+            text(p, 1, 12, 196, WHITE, "%.32s", v->reference_dat_sha256+32);
+        }
+        text(p, 1, 12, 222, WHITE, "X  Result   Y  Settings");
+        return;
+    }
     if (v->stage == CV_STAGE_RESULT && v->page == 1) {
         text(p, 1, 12, 12, ACCENT, "SHA-1 FINGERPRINTS");
         text(p, 1, 12, 38, MUTED, "Pass 1"); digest(p, r->digest[0], r->complete[0], 54);
         text(p, 1, 12, 94, MUTED, "Pass 2"); digest(p, r->digest[1], r->complete[1], 110);
-        text(p, 1, 12, 163, MUTED, "Reference: %s", v->reference_present ? "supplied" : "absent");
+        text(p, 1, 12, 163, MUTED, "Reference: %s", reference);
         text(p, 1, 12, 213, WHITE, "X  Next page   Y  Settings");
         return;
     }
@@ -102,7 +121,7 @@ void cv_draw(const CvPainter *p, const CvView *v) {
         for (unsigned i = 0; v->log_path[i] && i < 160; i += 32)
             text(p, 1, 12, 64+(int)(i/32)*16, WHITE, "%.32s", v->log_path+i);
         text(p, 1, 12, 180, MUTED, "No ROM dump was saved.");
-        text(p, 1, 12, 213, WHITE, "X  Result   Y  Settings");
+        text(p, 1, 12, 213, WHITE, "X  Source   Y  Settings");
         return;
     }
     const char *title = "READY TO CHECK";
@@ -114,6 +133,7 @@ void cv_draw(const CvPainter *p, const CvView *v) {
         switch (r->status) {
         case CV_CONSISTENT: title = "READS CONSISTENT"; break;
         case CV_REFERENCE_MATCH: title = "REFERENCE MATCH"; title_color = ACCENT; break;
+        case CV_DATABASE_MATCH: title = "DATABASE MATCH"; title_color = ACCENT; break;
         case CV_REFERENCE_MISMATCH: title = "REFERENCE DIFFERS"; title_color = RED; break;
         case CV_INCONSISTENT: title = "READS DIFFER"; title_color = RED; break;
         case CV_CANCELLED: title = "SCAN CANCELLED"; break;
@@ -124,14 +144,14 @@ void cv_draw(const CvPainter *p, const CvView *v) {
     if (v->stage == CV_STAGE_SCANNING) {
         text(p, 1, 12, 40, WHITE, "B  Cancel scan");
         text(p, 1, 12, 65, MUTED, "Keep cartridge inserted.");
-        text(p, 1, 12, 92, WHITE, "Reference: %s", v->reference_present ? "supplied" : "absent");
+        text(p, 1, 12, 92, WHITE, "Reference: %s", reference);
         text(p, 1, 12, 122, MUTED, v->pass == 1 ? "Collecting region baseline." : "Comparing logical regions.");
         text(p, 1, 12, 150, MUTED, "No cartridge or save writes.");
     } else {
         text(p, 1, 12, 40, WHITE, v->stage == CV_STAGE_RESULT ? "A  Scan again   X  Details" : "A  Start / retry scan");
         text(p, 1, 12, 57, WHITE, "B  Power off   START  Reboot");
         text(p, 1, 12, 88, MUTED, "%.36s", v->detail);
-        text(p, 1, 12, 106, MUTED, "Reference: %s", v->reference_present ? "supplied (unverified)" : "not supplied");
+        text(p, 1, 12, 106, MUTED, "Reference: %s", reference);
         if (v->stage == CV_STAGE_RESULT)
             text(p, 1, 12, 134, v->log_saved ? ACCENT : RED,
                  v->log_saved ? "SD log saved." : "SD LOG FAILED.");
@@ -140,5 +160,5 @@ void cv_draw(const CvPainter *p, const CvView *v) {
         text(p, 1, 12, 153, WHITE, "Y  Settings");
     text(p, 1, 12, 177, MUTED, "Consistency alone does not");
     text(p, 1, 12, 191, MUTED, "establish known-good data.");
-    text(p, 1, 12, 222, MUTED, "v0.2.0-alpha.3 / experimental");
+    text(p, 1, 12, 222, MUTED, "v0.2.0-alpha.4 / experimental");
 }
