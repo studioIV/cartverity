@@ -9,6 +9,10 @@ The original `.gm9` script remains available separately.
 
 ## Install
 
+Download the experimental native bundle from the
+[v0.2.0-alpha.1 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.1).
+It includes the firmware, complete corresponding source, build environment and checksums.
+
 On a console already running Luma3DS, copy **CartVerity.firm** to
 `SD:/luma/payloads/CartVerity.firm`. Keep your working GodMode9 payload installed.
 Hold START while powering on and choose CartVerity in the Luma chainloader.
@@ -56,6 +60,8 @@ Native UI and scan-core tests run on a host; the ARM firmware is built in CI.
 experimental until its boot, both passes, cancellation, references and SD logs
 have been checked on hardware. The supplied preview is a host rendering of the
 actual C dashboard using simulated data, not a console screenshot.
+The preview uses GodMode9's bundled font; upstream font/source notices are
+preserved in the corresponding-source archive.
 
 ## Build and corresponding source
 
