@@ -1,5 +1,13 @@
 # Changelog
 
+## Documentation refresh — 2026-10-18
+
+- Make standalone alpha.3 the main README/install/download path.
+- Add tutorials for installation, controls/settings, references, updates and
+  troubleshooting; document native logs and current limitations.
+- Separate legacy script instructions/logs/limits and update hardware reports,
+  validation and GPL source-distribution notes. No firmware behavior changed.
+
 ## 0.2.0-alpha.3 - 2026-10-18
 
 - Display `by studioIV` on the top screen across all pages and in the README.

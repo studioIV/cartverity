@@ -1,39 +1,31 @@
-# Testing and release readiness
+# Standalone testing and hardware reports
 
 ## Current evidence
 
-- Official GodMode9 v2.2.3 source was reviewed for every used command, cartridge view construction, hash calls, and unsupported verification behavior.
-- Static validation and modeled scenario tests run offline with the Python standard library.
-- `tools/check_upstream.py` verifies source hashes and command signatures against `upstream-lock.json`.
-- No physical console or cartridge was available during initial development.
+Alpha.3 passed its [native CI run](https://github.com/studioIV/cartverity/actions/runs/39075916959): compiled C host tests, ARM firmware build, packaging and active initializer save-access audit. The 11 native tests cover synthetic changes/faults, references, cancellation, settings, metrics, drawing bounds and unchanged-pixel preservation. They do not emulate a cartridge or execute firmware on a console.
 
-After initial development, the user supplied photos of one New 3DS XL script
-run. Both SHA-1 values agreed, no reference was supplied, and the log ended with
-`CONSISTENT_UNVERIFIED` and `state=COMPLETE`. This is limited evidence for one
-cartridge; the exact GodMode9 version and broader compatibility remain unverified.
-It does not validate the separate native payload.
+The user reported native display flicker; alpha.2 introduced incremental presentation. A structured report confirming the visual improvement and exercising all native controls, references and SD cases is still needed.
 
-## Native dashboard
+A separate user-supplied legacy script log confirms one N3DS run with GodMode9 v2.2.3, equal SHA-1 values, no reference and a complete report. This does not validate native scanning or broad compatibility. [Validation records](VALIDATION.md).
 
-The compiled portable C core is exercised by `native/tests/test_native.py` with
-real hashlib SHA-1 callbacks, changed regions, partial blocks, cancellation at
-pass/block boundaries, read/initialization failures, references, metric bounds
-and drawing bounds. Build it as a shared library and supply its path:
+## Native host checks
+
+From the repository root, with a C compiler and Python 3.10+:
 
 ```sh
 cc -shared -fPIC -O2 -std=c11 -Wall -Wextra -Werror native/source/cartverity_scan.c native/source/cartverity_ui.c native/source/cartverity_display.c -o /tmp/cartverity.so
 python3 native/tests/test_native.py /tmp/cartverity.so
 ```
 
-The native workflow additionally compiles and packages the ARM `.firm`. Physical
-tests remain pending for native boot, both read passes, SHA-1 agreement with the
-script/PC, cancellation, reference match/mismatch, rejection of unsupported carts,
-rescan, log creation and power/reboot controls. Do not infer physical validation
-from a host-rendered preview or a successful ARM build.
+The path is a Linux/macOS example; Windows needs a suitable compiler and DLL path. The optional `native/tests/render_preview.py` requires Pillow and the upstream font and renders simulated state, not a hardware screenshot.
 
-## Run automated checks
+## Firmware integration
 
-From the project root, with Python 3.10 or later:
+Follow [native build instructions](../native/README.md#build). CI compiles the actual ARM firmware, packages complete corresponding source, and preprocesses `gamecart.c` with CARTVERITY_APP enabled. The initializer audit rejects active save-probing/access calls. Do not silently change the pinned GodMode9 base.
+
+Preparation verifies the official ZIP's SHA-256 before extraction and requires a new output directory. CI checksums the firmware, source, README, license and build-environment assets. Every firmware distribution needs its matching GPL corresponding source.
+
+## Helper and legacy checks
 
 ```text
 python tools/gm9check.py gm9/scripts/CartVerity.gm9
@@ -41,30 +33,26 @@ python -m unittest discover -s tests -v
 python tools/check_upstream.py
 ```
 
-The last command needs network access and reads only the pinned official source files. To use a previously downloaded source cache, pass `--source-dir PATH`; files there use their basename, such as `scripting.c`.
+The last command downloads pinned source files; `--source-dir PATH` enables an existing cache. The 98-test Python suite covers the old script model and desktop helper, not native hardware. Platform permissions may skip its symlink edge case.
 
-The modeled runner evaluates the actual script text with fake files, hash outcomes, prompts and failures. This is useful for branch coverage and write-scope checks. It is not the real interpreter or a cartridge emulator. In particular, EOF versus I/O ambiguity, timings, card initialization and partial storage writes are subject to the documented upstream limits.
+## Native hardware checklist
 
-## Hardware checklist
+Keep cartridge and SD inserted during scanning. Do not alter cartridge data or deliberately interrupt power to simulate faults. Use [the report template](../.github/ISSUE_TEMPLATE/hardware_report.md).
 
-Record results in an issue using the hardware report template. Use original cartridges and keep the cart inserted throughout each run. Never deliberately interrupt power or alter game data for testing.
+| Test | Evidence to record |
+| --- | --- |
+| Boot alpha.3 | Exact version, console model, dashboard and by studioIV header |
+| Two full passes | Native report, byte counts and both hashes |
+| Separate dump comparison | Same full normalized representation; distinguish agreement from trusted provenance |
+| Known-good reference | MATCHES_SUPPLIED_REFERENCE; provenance, revision and format |
+| Different synthetic reference | REFERENCE_MISMATCH without modifying cartridge data |
+| Auto/Require/Ignore | Missing, valid and malformed file behavior |
+| Cancel | CANCELLED with progress and report if SD writes succeed |
+| Absent/unsupported cart | CANNOT START; no ROM scan |
+| Rescan | A returns to ready, a further A starts; previous logs preserved |
+| Settings | Navigation, brightness, defaults, initial page, reset after reboot |
+| Display | Refresh interval, flashing versus text/bar tearing, alpha.2+ comparison |
+| Reports | Unique filename, native fields, completion meaning, path page |
+| Exit | B power-off and START reboot on the main dashboard |
 
-| Check | Expected evidence | Initial status |
-| --- | --- | --- |
-| New 3DS XL, official GM9 2.2.3 | Script starts and creates a readable log | Pending |
-| One known readable original NDS cart | Two digests agree; no reference gives `CONSISTENT_UNVERIFIED` | Pending |
-| Full-view PC comparison | A separately dumped full standard `.nds` has the same SHA-1 as the log | Pending |
-| Trustworthy matching reference | `MATCHES_SUPPLIED_REFERENCE`; record reference provenance | Pending |
-| Deliberately different synthetic reference | `REFERENCE_MISMATCH`; do not alter the cartridge | Pending |
-| Short/text/oversized reference file | `INVALID_OR_UNREADABLE`; hashes can still be saved | Pending |
-| B at initial start prompt | No new log or script writes | Pending |
-| Cancel a hash progress operation | `READ_INCOMPLETE` with the appropriate pass, if GM9 returns control | Pending |
-| No cartridge; 3DS cartridge | Discovery outcome; no ROM hashing | Pending |
-| Repeated runs in the same RTC second | Distinct logs; earlier logs unchanged | Pending |
-| Title containing a period | Correct full filename retained | Pending |
-
-A PC comparison of one's own dump checks agreement between methods. It is not independently a trustworthy preservation reference. Run on additional cart sizes and revisions before broadening compatibility claims. DSi-enhanced or special-storage cartridges should be reported separately.
-
-## Updating the upstream target
-
-Do not update only the version label. Review the command parser, `vcart.c`, `gamecart.c`, `fsutil.c`, and verification dispatch at the new commit. Regenerate the source hashes intentionally, run checks, and repeat hardware validation. Do not silently switch to a moving `master` branch.
+Include a redacted log and deviations. Do not upload ROMs, saves, keys, personal console identifiers or databases you cannot redistribute. Broaden compatibility claims only as evidence accumulates.

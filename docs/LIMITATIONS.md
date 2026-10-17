@@ -1,48 +1,59 @@
-# Supported limits
+# Standalone scope and limitations
 
-## What is measured
+## Cartridge support
 
-The SHA-1 calculations cover the full standard `.nds` virtual file exposed by GodMode9, including its padding. They do not read save data. The standard view uses a decrypted secure area. The `.trim.nds` and `.nds.enc` views contain different byte sequences and need different references.
+The native app accepts standard DS cartridges up to 512 MiB with a standard
+DS header. It rejects 3DS and DSi-enhanced cartridges. Special-storage titles,
+flashcarts and unusual hardware are not validated. New 3DS XL is the development
+target; broader model compatibility requires testing.
 
-GodMode9 initializes and caches parts of the cartridge. Header and secure-area bytes, and relevant DSi modcrypt data, can be returned from cached buffers. Calculating a digest twice does not force those bytes to be physically read twice. A power cycle and fresh run can provide an additional observation, but still does not turn this into a complete electrical diagnostic.
+## Read-only integration
 
-## What failure means
+The dedicated entrypoint bypasses the GodMode9 browser. Its initializer skips
+save-detection blocks, including the upstream EEPROM write/restore capacity
+probe. The app never accesses save memory and has no cart/NAND repair, write,
+refresh or installation action. Only SD log directories/files are created or
+written. Settings are session-only and have no SD configuration file.
 
-`shaget` exposes success or failure to a `.gm9` script. It does not provide a structured distinction between cancellation, file-read failure, and other hash failures. This project deliberately combines them as `FAILED_OR_CANCELLED` and never declares the cartridge damaged solely because a command failed.
+The old `.gm9` script cannot suppress stock GodMode9's initialization probe;
+see [legacy limitations](LEGACY_LIMITATIONS.md). Its write scope must not be
+confused with the native integration's bypass.
 
-GodMode9's ordinary NTR cartridge read path does not provide the script with a per-sector error report. Its file-hash function also does not independently assert that every read returned the requested byte count. These are upstream boundaries. This script cannot guarantee detection of all low-level faults, identify a failing chip or sector, reset the cartridge reader, bypass its caches, or repair data.
+## What the scan measures
 
-GodMode9's `verify` command dispatch has no standalone NDS verification branch in the pinned release. Calling that command would not add a supported whole-ROM integrity check, so the script uses hashes instead.
+Two SHA-1 passes cover the full normalized DS ROM length, including padding.
+The secure area is decrypted by GodMode9. Header/secure-area buffers are cached;
+reinitializing before each pass reacquires them but is not a physical-cell or
+electrical diagnostic. CRC32 identifies differing 1 MiB logical regions; matching
+CRC32 regions alone do not establish correctness. Whole SHA-1 is also compared.
 
-## References and interpretation
+GodMode9's low-level DS read interface lacks comprehensive per-sector status.
+The adapter detects removal, identity/initialization errors and reported read
+failures, but cannot independently prove the byte count of every bus transfer.
+The portable scan core's short-read rejection does not remove that boundary.
+Cancellation requires the active cartridge operation to return.
 
-A match establishes agreement with supplied bytes, subject to the behavior above. The user supplies and trusts the reference. No provenance authentication, online database lookup, or automated game identification against a database is performed.
+## Reference interpretation
 
-A mismatch can result from the wrong revision, region, representation, length, or reference, as well as differing cartridge data. Stable corruption can produce matching repeated reads. SHA-1 is used for compatibility with preservation references and accidental-difference detection, not as a defense against deliberately constructed cryptographic collisions.
+Consistent repeated reads can include stable corruption. A match means agreement
+with the supplied digest, not authenticated provenance. A mismatch can mean a
+different region/revision, length, padding, secure-area representation or wrong
+reference, as well as differing cartridge data. SHA-1 provides archival
+compatibility, not adversarial authenticity. No online lookup or DAT/database
+import exists in this release. [Reference instructions](REFERENCES.md).
 
-The desktop helper strictly creates a 20-byte binary reference. On the console the script requires a successful 20-byte read and rejects a successfully read byte after it. The EOF probe cannot distinguish end-of-file from an SD read failure, so exact reference length cannot be proven during storage faults. A missing/inaccessible reference can likewise appear absent. The reported status must not be treated as authentication of the SD card or its contents.
+## Display, logging and validation
 
-## Files, compatibility and privacy
+Incremental presentation avoids repeated visible full-screen clears; it does
+not perform hardware VBlank page flipping. Remaining tearing/flicker needs
+physical testing. Speed is an average including initialization/UI overhead;
+ETA is an estimate. Changing refresh never changes the two full passes.
 
-All script write destinations are SD log paths. The script has no `allow`, `cp`, `rm`, `inject`, `fill`, `fset`, `encrypt`, `decrypt`, `install`, or repair command. It relies on normal GodMode9 cartridge initialization; inspecting a cartridge still sends read/protocol commands to its controller.
+SD writes are checked, synced and closed but are not atomic transactions.
+Power loss or storage faults can damage a report even if a completion marker
+is readable. A completed report can record a failed/cancelled scan.
 
-Logs contain version, console family, timestamps, ROM path, header identifiers, hashes, and results. They omit console serials, unique keys, ROM payloads, and saves. A filename can reveal the game being checked. This project includes no cartridge data or actual game reference database.
-
-The supported target is official GodMode9 2.2.3 on New 3DS XL, pending hardware confirmation. A fork, older version, unusual DS cartridge, flashcart, DSi-enhanced title, or special storage cartridge requires its own testing. There is no special support for WarioWare D.I.Y., NAND-backed cartridge storage, or flashcarts. A full `.nds` view being available does not establish that every cartridge-specific feature is represented.
-
-GodMode9 treats the last `@` in a hash source argument as its offset/size separator. The script appends an explicit `@0` to retain any `@` inside the filename and hash the full view. Periods in titles are also retained.
-
-## Logging and testing
-
-Each run chooses an unused log path. A write failure stops the script, preserving whatever was written so far. Final fields are appended after hashing; the last state is authoritative for a normal readable log. Appending text/newlines and storage flushes are not atomic. Power loss or SD failure can leave a truncated or misleading final line, so the completion marker is not a transaction guarantee.
-
-Local and CI tests validate the script's modeled behavior and its source-supported command signatures. They do not constitute execution in GodMode9 or a hardware guarantee. See [TESTING.md](TESTING.md) for the remaining validation work.
-# Stock GodMode9 initialization caveat
-
-The script itself contains no cartridge/save write commands. However, pinned
-GodMode9's `InitCartRead` calls `CardSPIGetCardSPIType`; for some EEPROMs its
-`_SPIIsDataMirrored` routine writes a complemented save byte and restores it to
-detect capacity. Therefore the stock `.gm9` path cannot guarantee that save
-memory is never written. CartVerity's native build conditionally removes the
-initializer's save-detection blocks and does not access save memory.
-
+Host tests, build success and a host preview cannot certify console behavior.
+The initial user-provided complete log validated the old script on one cart;
+native observations and pending checks are recorded in [testing](TESTING.md).
+The app cannot assess remaining cartridge lifespan or repair damaged hardware.

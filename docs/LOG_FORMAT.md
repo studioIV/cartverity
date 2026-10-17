@@ -1,28 +1,57 @@
-# Log format: ds-cart-check/1
+# Standalone log format: cartverity-native/1
 
-Logs are UTF-8-compatible ASCII key/value lines. Split each line at its first `=`. The order is useful to humans but readers should use keys. Repeated keys take their last value; `state=INCOMPLETE` is replaced by `state=COMPLETE` only at a normal finish. An empty value is allowed. Unknown future keys should be ignored.
+Native reports are ASCII key/value lines saved under:
 
-Path: `/gm9/out/dscheck/YYMMDD_hhmmss_????.txt`. GodMode9 chooses unused suffix characters with `findnot`; clients must not assume the suffix is decimal. Console timestamps come from its RTC and can be wrong. No log is written when the initial prompt is declined or if log setup cannot start.
+```text
+SD:/gm9/out/dscheck/native_YYMMDD_hhmmss_0000.txt
+```
+
+The decimal suffix selects an unused filename. Timestamps come from the console
+RTC and can be wrong. No report is created when discovery/reference checks fail;
+log setup must succeed before the scan starts. The native format differs from
+the [legacy script format](LEGACY_LOG_FORMAT.md).
+
+Split each line at the first `=`. Ignore unknown future keys. Repeated keys use
+their last value, **except `changed_region_offset` is a list**: retain every
+occurrence. `state=INCOMPLETE` is written before scanning and `state=COMPLETE`
+after the outcome is recorded. A complete report can describe a cancelled or
+failed scan. Missing completion means the report may be interrupted or partial.
 
 | Field | Meaning |
 | --- | --- |
-| `format` | Always `ds-cart-check/1` for this release. |
-| `state` | `INCOMPLETE` followed by `COMPLETE` at the normal end. |
-| `script_version` | Project version. |
-| `gm9_version`, `console_type` | GodMode9 version and its `ONTYPE` value. |
-| `started`, `finished` | Console RTC date/time. |
-| `view`, `algorithm`, `scope` | Full standard NDS view, SHA1, virtual view including caches. |
-| `rom` | Full cartridge path; absent if discovery fails. |
-| `game_code_hex`, `revision_hex` | NDS header bytes at 0x0C and 0x1E, logged as hex. |
-| `reference_path` | Candidate reference sidecar; its presence does not mean it was loaded. |
-| `reference_sha1` | Reference digest if its structure was accepted. |
-| `sha1_pass1`, `sha1_pass2` | Digests only for successfully completed hash commands. |
-| `read_result` | `NOT_STARTED`, `CONSISTENT`, `INCONSISTENT`, `PASS1_FAILED_OR_CANCELLED`, or `PASS2_FAILED_OR_CANCELLED`. |
-| `reference_result` | `NOT_PROVIDED`, `INVALID_OR_UNREADABLE`, `LOADED`, `MATCH`, or `MISMATCH`. |
-| `result` | Overall outcome listed in the README. |
+| `format` | `cartverity-native/1` |
+| `state` | Initial INCOMPLETE; final COMPLETE if report writing reaches the end |
+| `version` | Native app version, such as `0.2.0-alpha.3` |
+| `godmode9_base` | Pinned upstream base, `2.2.3` |
+| `display_refresh_ms` | Configured display update interval |
+| `reference_policy` | AUTO, REQUIRE or IGNORE |
+| `rom_view` | `full_standard_nds` |
+| `game_code_hex`, `revision_hex` | Raw header identifiers encoded in hexadecimal |
+| `rom_bytes` | Full normalized ROM length |
+| `reference_path` | Candidate reference path; present even if none was loaded |
+| `reference_state` | NOT_PROVIDED or SUPPLIED_UNAUTHENTICATED |
+| `reference_sha1` | Supplied digest if loaded; not proof that comparison completed |
+| `region_size` | Logical comparison size, 1048576 bytes |
+| `scope` | Normalized view, per-pass initialization and bus-reporting limitation |
+| `result` | Outcome described in [usage](USAGE.md#understand-the-result) |
+| `pass1_bytes`, `pass2_bytes` | Successfully processed bytes per pass |
+| `sha1_pass1`, `sha1_pass2` | Digests only for completed passes |
+| `elapsed_ms` | Scan elapsed time, including per-pass initialization |
+| `regions_compared`, `regions_changed` | Region comparisons completed and differences found |
+| `changed_region_offset` | Repeated decimal start offsets of differing 1 MiB regions |
+| `read_detail` | Context such as two-pass operation, removal or identity failure |
 
-`LOADED` means the reference was readable but not compared because two consistent passes were not obtained. `INVALID_OR_UNREADABLE` and `NOT_PROVIDED` never produce a reference mismatch verdict. A consistent run with either is still `CONSISTENT_UNVERIFIED`.
+The native format has no `rom=`, `script_version=`, `read_result=` or
+`reference_result=` fields. Use `reference_path` for the exact sidecar filename.
+Ignore policy records NOT_PROVIDED because no reference was loaded; check
+`reference_policy` to distinguish intentional skipping.
 
-Discovery and read failures can end with `state=COMPLETE`: it means the script recorded its outcome, not that the cartridge passed. SD write failures stop execution, so final outcome fields can be absent. The marker is not an atomic storage guarantee.
+Logs are flushed before scanning and synced/closed afterward, with write results
+checked. A storage fault may still truncate or corrupt them. The screen only
+reports a saved log after a completed report and successful sync/close. A final
+marker is not a transaction or a cartridge pass verdict.
 
-The file in `examples/` is synthetic documentation. Its hashes are not references for any game.
+Logs contain game identifiers, reference paths/hashes, results and a timestamp
+in their filename. They contain no ROM payload, save or console serial. Review
+them before sharing. The original `examples/consistent-unverified.txt` remains
+a **synthetic legacy-format example**, not a game reference or native report.
