@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.gm9 text eol=lf
+*.sha1 binary
+*.zip binary
