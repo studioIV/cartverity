@@ -37,3 +37,12 @@ GodMode9 treats the last `@` in a hash source argument as its offset/size separa
 Each run chooses an unused log path. A write failure stops the script, preserving whatever was written so far. Final fields are appended after hashing; the last state is authoritative for a normal readable log. Appending text/newlines and storage flushes are not atomic. Power loss or SD failure can leave a truncated or misleading final line, so the completion marker is not a transaction guarantee.
 
 Local and CI tests validate the script's modeled behavior and its source-supported command signatures. They do not constitute execution in GodMode9 or a hardware guarantee. See [TESTING.md](TESTING.md) for the remaining validation work.
+# Stock GodMode9 initialization caveat
+
+The script itself contains no cartridge/save write commands. However, pinned
+GodMode9's `InitCartRead` calls `CardSPIGetCardSPIType`; for some EEPROMs its
+`_SPIIsDataMirrored` routine writes a complemented save byte and restores it to
+detect capacity. Therefore the stock `.gm9` path cannot guarantee that save
+memory is never written. CartVerity's native build conditionally removes the
+initializer's save-detection blocks and does not access save memory.
+

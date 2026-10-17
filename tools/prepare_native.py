@@ -59,6 +59,20 @@ def prepare(data, out):
         "    if (CartVerityMain(entrypoint) == GODMODE_EXIT_REBOOT)\n"
         "    #elif defined(SCRIPT_RUNNER)\n")
     main.write_text(source, encoding="utf-8", newline="\n")
+    # Upstream NTR EEPROM capacity detection writes/restores a save byte.
+    # This ROM-only app must never invoke save detection, even at discovery.
+    cart = out / "arm9/source/gamecart/gamecart.c"
+    source = cart.read_text(encoding="utf-8")
+    for start, end in (
+        ("        // save data\n        u32 card2_offset", "    } else { // NTR/TWL cartridges"),
+        ("        // save data\n        bool infrared", "    }\n    return 0;\n}\n\nu32 ReadCartSectors"),
+    ):
+        if source.count(start) != 1 or source.count(end) != 1:
+            raise ValueError("Unexpected upstream save-detection layout")
+        first, last = source.index(start), source.index(end)
+        source = (source[:first] + "#ifndef CARTVERITY_APP\n" + source[first:last]
+                  + "#endif /* ROM-only CartVerity: no save-chip probing */\n" + source[last:])
+    cart.write_text(source, encoding="utf-8", newline="\n")
     common = out / "Makefile.common"
     with common.open("a", encoding="utf-8", newline="\n") as stream:
         stream.write("\nifeq ($(CARTVERITY_APP),1)\n    CFLAGS += -DCARTVERITY_APP\nendif\n")

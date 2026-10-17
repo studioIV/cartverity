@@ -6,6 +6,9 @@
   bars, throughput, elapsed time, ETA and changed logical-region counts.
 - Reinitialize cartridge access before each pass; compare whole-ROM SHA-1 and
   1 MiB CRC32 regions. Preserve read-only operation and optional references.
+- Bypass upstream save-chip detection in native builds: stock GodMode9's EEPROM
+  capacity probe can write/restore a save byte. Document that script limitation
+  and audit the native initializer's active preprocessed code in CI.
 - Add checked unique SD reports, cancellation, rescan and result/detail pages.
 - Build ARM firmware in CI with complete GPL corresponding source, environment
   information and checksums. Add compiled C core and UI tests plus a host preview.

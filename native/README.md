@@ -42,9 +42,13 @@ SD failures are reported separately from cartridge results. No ROM dump is saved
 ## Scope and limitations
 
 The first native version accepts standard DS cartridges up to 512 MiB and
-rejects DSi-enhanced, 3DS and special NAND-save cartridges. It does not write
+rejects DSi-enhanced and 3DS cartridges. Special-storage compatibility is not
+claimed. It does not write
 cartridge ROM, save memory or NAND; only SD report files are written. This is
-not a port of Cartridge Fixer's 3DS cartridge refresh operation.
+not a port of Cartridge Fixer's 3DS cartridge refresh operation. The native
+integration explicitly bypasses upstream save-chip detection, whose EEPROM
+capacity probe can otherwise write and restore a save byte. No save-chip
+detection or save-memory access is needed by this app.
 
 GodMode9 normalizes the secure area and caches some data. Reinitializing each
 pass reacquires those caches but is not a physical-cell test. Its low-level DS

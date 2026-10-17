@@ -4,6 +4,12 @@
 
 Read-only Nintendo DS cartridge integrity checking on the Nintendo 3DS family, intended for a New Nintendo 3DS XL running **official GodMode9 2.2.3**. CartVerity records repeated SHA-1 checks, optional trusted-reference comparisons, and SD logs.
 
+**Read-only scope correction:** the script issues no cartridge/save write
+commands, but stock GodMode9's NDS initialization can write and restore an
+EEPROM save byte while detecting capacity. A `.gm9` script cannot prevent that
+internal probe. Use the **native payload** for the implementation that explicitly
+bypasses save detection. This is independent of the reported matching ROM hashes.
+
 **Script v0.1.0:** one user-reported New 3DS XL run completed both passes with matching SHA-1 values and an SD log (`CONSISTENT_UNVERIFIED`, no reference). This is limited hardware evidence, not a compatibility certification. The automated suite also exercises a simulated filesystem. See [testing](docs/TESTING.md).
 
 **Standalone dashboard:** the experimental [native 3DS payload](native/README.md)

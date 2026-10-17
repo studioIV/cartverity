@@ -43,6 +43,12 @@ jobs:
       - name: Build standalone ARM payload
         working-directory: build/godmode9
         run: make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.1 -j2
+      - name: Audit active cartridge initializer
+        run: |
+          cd build/godmode9
+          "$DEVKITARM/bin/arm-none-eabi-gcc" -E -DARM9 -DCARTVERITY_APP -Icommon $(find arm9/source -type d -printf '-I%p ') arm9/source/gamecart/gamecart.c > /tmp/cartverity-gamecart.i
+          cd ../..
+          python3 native/tests/audit_initializer.py /tmp/cartverity-gamecart.i
       - name: Package and checksum
         run: |
           cp build/godmode9/output/GodMode9.firm dist/native/CartVerity.firm
