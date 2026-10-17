@@ -1,7 +1,6 @@
 # CartVerity for GodMode9
 
-Copyright © 2026 studioIV and CartVerity contributors. GodMode9 and its
-components retain their respective copyright and license notices.
+by **studioIV**
 
 [![Checks](https://github.com/studioIV/cartverity/actions/workflows/check.yml/badge.svg)](https://github.com/studioIV/cartverity/actions/workflows/check.yml)
 

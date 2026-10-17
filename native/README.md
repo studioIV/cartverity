@@ -1,7 +1,6 @@
 # CartVerity standalone dashboard (experimental)
 
-Copyright Â© 2026 studioIV and CartVerity contributors for CartVerity's original
-code. GodMode9 and its components retain their respective attribution and licenses.
+by **studioIV**
 
 This native 3DS `.firm` payload starts directly in CartVerity, with no script
 listing or file browser. It is built from official GodMode9 2.2.3, commit

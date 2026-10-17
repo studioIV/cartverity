@@ -42,7 +42,7 @@ void cv_draw(const CvPainter *p, const CvView *v) {
     p->rect(p->context, 0, 0, 0, 400, 240, BG);
     p->rect(p->context, 1, 0, 0, 320, 240, BG);
     text(p, 0, 12, 10, ACCENT, "CARTVERITY");
-    text(p, 0, 188, 10, MUTED, "Copyright (c) 2026 studioIV");
+    text(p, 0, 300, 10, MUTED, "by studioIV");
     text(p, 0, 12, 26, MUTED, "READ-ONLY / NDS INTEGRITY");
     p->rect(p->context, 0, 12, 43, 376, 1, PANEL);
     text(p, 0, 12, 54, WHITE, "%.36s", v->name);
