@@ -14,4 +14,4 @@ The skipped test needs Windows symlink creation privileges. It is a desktop-help
 
 The reviewed source bytes also matched their official Git blob identities at commit `0ee81b7738401b3e9f0b92b3b11159936222e542`. No upstream source is bundled in the release.
 
-The GitHub Actions workflow is included but has not been run in this project on GitHub. Automated checks do not substitute for executing the script in GodMode9. All physical-console checks in [TESTING.md](TESTING.md) remain pending.
+The entries above record local validation. GitHub workflow results are recorded separately in [Actions](https://github.com/studioIV/cartverity/actions/workflows/check.yml). Automated checks do not substitute for executing the script in GodMode9. All physical-console checks in [TESTING.md](TESTING.md) remain pending.
