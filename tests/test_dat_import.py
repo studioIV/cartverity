@@ -20,6 +20,16 @@ def fixture(roms=None, name='Nintendo - Nintendo DS (Decrypted)', version='SYNTH
 
 
 class DatTests(unittest.TestCase):
+    def test_official_export_with_contributor_authors_and_homepage(self):
+        data = fixture().replace(b'<author>No-Intro</author>',
+            b'<author>Contributor One, Contributor Two</author>'
+            b'<homepage>No-Intro</homepage><url>https://www.no-intro.org</url>')
+        _, info = module.convert(data)
+        self.assertEqual(info['dat_authors'], 'Contributor One, Contributor Two')
+        self.assertEqual(info['dat_url'], 'https://www.no-intro.org')
+        with self.assertRaises(ValueError):
+            module.convert(data.replace(b'https://www.no-intro.org', b'https://example.invalid'))
+
     def test_metadata_checksum_and_record(self):
         data, info = module.convert(fixture())
         self.assertEqual(data[:8], b'CVDB0001')

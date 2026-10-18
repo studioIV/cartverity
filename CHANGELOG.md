@@ -2,6 +2,10 @@
 
 ## 0.2.0-alpha.4
 
+- Reference tools correction: accept official No-Intro exports that list individual
+  contributors in author and identify the project in homepage/URL. Preserve
+  contributor attribution in the importer report. Firmware is unchanged.
+
 - Add offline No-Intro XML DAT import and exact whole-ROM SHA-1/size lookup.
 - Validate bounded databases with metadata, order, size and CRC checks; keep
   missing entries unverified and per-game sidecars first priority.

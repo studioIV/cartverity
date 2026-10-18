@@ -13,6 +13,7 @@ import re
 import struct
 import sys
 import unicodedata
+from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 import zlib
 
@@ -43,11 +44,20 @@ def convert(data):
     name = root.findtext('header/name', '')
     version = root.findtext('header/version', '')
     author = root.findtext('header/author', '')
+    homepage = root.findtext('header/homepage', '')
+    url = root.findtext('header/url', '')
     if (not re.match(r'^Nintendo - Nintendo DS(?:\s|\(|$)', name)
             or re.search(r'\bEncrypted\b|Download Play|Digital', name, re.I)):
         raise ValueError('Use a full Nintendo DS DAT compatible with the decrypted standard view')
-    if 'no-intro' not in author.lower() or not version.strip():
-        raise ValueError('DAT must identify No-Intro as author and include its version')
+    # Current official DATs list individual contributors in <author> and identify
+    # No-Intro through <homepage>/<url>. Older exports may use author=No-Intro.
+    try:
+        official_homepage = (homepage.strip().lower() == 'no-intro' and
+                             urlsplit(url.strip()).hostname in {'no-intro.org', 'www.no-intro.org'})
+    except ValueError:
+        official_homepage = False
+    if not ('no-intro' in author.lower() or official_homepage) or not version.strip():
+        raise ValueError('DAT must identify No-Intro in author or homepage/URL and include its version')
     records = {}
     skipped = 0
     for game in list(root.findall('game')) + list(root.findall('machine')):
@@ -82,7 +92,8 @@ def convert(data):
     struct.pack_into('<I', output, 16, zlib.crc32(output))
     return bytes(output), {'entries': len(records), 'skipped': skipped,
                            'dat_name': name, 'dat_version': version,
-                           'dat_sha256': hashlib.sha256(data).hexdigest(), 'source': SOURCE_URL}
+                           'dat_sha256': hashlib.sha256(data).hexdigest(), 'source': SOURCE_URL,
+                           'dat_authors': author, 'dat_homepage': homepage, 'dat_url': url}
 
 
 def write_new(path, data):

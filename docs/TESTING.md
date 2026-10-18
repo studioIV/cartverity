@@ -8,7 +8,7 @@ Python 3.10+, standard library only:
 python -m unittest discover -s tests -v
 ```
 
-The 25 tests cover sidecar creation, safe output handling and synthetic DAT
+The 26 tests cover sidecar creation, safe output handling and synthetic DAT
 import. Windows may skip the symlink privilege edge case. Fixtures contain no
 real game references. CI runs Python 3.10/3.13 on Linux and Windows.
 
