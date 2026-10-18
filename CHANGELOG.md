@@ -2,6 +2,7 @@
 
 ## 0.2.0-alpha.5
 
+- Include the version in the downloadable firmware filename and SD boot-menu label.
 - Give completed scans a brighter result panel with the outcome, reference and
   final stats in place of completed progress bars.
 - Separate physical-button controls from content with high-contrast labeled

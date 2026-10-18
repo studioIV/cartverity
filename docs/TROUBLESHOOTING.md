@@ -2,14 +2,14 @@
 
 ## CartVerity is missing from the boot menu
 
-Check `SD:/luma/payloads/CartVerity.firm`, not `gm9/scripts`, a ZIP file or
-`CartVerity.firm.firm`. Hold START while powering on with your configured Luma
+Check `SD:/luma/payloads/CartVerity-v0.2.0-alpha.5.firm`, not `gm9/scripts`, a ZIP file or
+`CartVerity-v0.2.0-alpha.5.firm.firm`. Hold START while powering on with your configured Luma
 setup. Keep the existing GodMode9 payload. [Install guide](INSTALL.md).
 
 ## The upper screen shows script code
 
 You launched the legacy `.gm9` checker in GodMode9. Boot the standalone
-`CartVerity.firm` from the payload menu. The standalone app starts directly in
+`CartVerity-v0.2.0-alpha.5.firm` from the payload menu. The standalone app starts directly in
 its dashboard; no script or Lua file is required.
 
 ## An old version or no settings menu appears

@@ -10,7 +10,7 @@ for New Nintendo 3DS XL. Boot directly into a dual-screen dashboard to compare
 two complete ROM reads and, optionally, a supplied reference or offline database.
 
 **[Download alpha.5](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.5)**
-· [Firmware only](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.5/CartVerity.firm)
+· [Firmware only](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.5/CartVerity-v0.2.0-alpha.5.firm)
 · [Reference tools](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.5/CartVerity-reference-tools.zip)
 
 Experimental: automated tests and builds do not certify hardware behavior.
@@ -18,7 +18,7 @@ Consistent reads without a trustworthy reference remain **unverified**.
 
 ## Quick start
 
-1. On an already configured Luma3DS console, copy `CartVerity.firm` to
+1. On an already configured Luma3DS console, copy `CartVerity-v0.2.0-alpha.5.firm` to
    `SD:/luma/payloads/`. Keep your working GodMode9 payload.
 2. Power off, insert an original standard DS cartridge, then hold **START**
    while powering on and select **CartVerity**.

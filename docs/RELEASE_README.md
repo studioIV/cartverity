@@ -8,10 +8,13 @@ repair cartridges. Real hardware/database validation is still needed.
 
 ## Install
 
-Copy `CartVerity.firm` to `SD:/luma/payloads/` on an already configured Luma3DS
+Copy `CartVerity-v0.2.0-alpha.5.firm` to `SD:/luma/payloads/` on an already configured Luma3DS
 console. Keep your existing GodMode9 payload. Power off, insert a standard DS
 cartridge, then hold START at boot and choose CartVerity. Do not replace
 `boot.firm` or flash NAND.
+
+When updating, remove the previous CartVerity payload from `luma/payloads/`
+after copying the new one, so the boot menu does not list duplicate versions.
 
 A starts; B cancels a scan. At the result X cycles details, including reference
 source. Y opens session settings outside scanning. Dashboard B powers off;
@@ -38,7 +41,7 @@ take priority.
 
 ## Files and source
 
-- `CartVerity.firm`: console payload.
+- `CartVerity-v0.2.0-alpha.5.firm`: console payload.
 - `CartVerity-reference-tools.zip`: PC helpers, reference setup and attribution.
 - `CartVerity-corresponding-source.zip`: complete matching GPL source, licenses,
   build files and build environment.

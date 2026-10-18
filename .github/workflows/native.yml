@@ -51,9 +51,9 @@ jobs:
           python3 native/tests/audit_initializer.py /tmp/cartverity-gamecart.i
       - name: Package and checksum
         run: |
-          cp build/godmode9/output/GodMode9.firm dist/native/CartVerity.firm
+          cp build/godmode9/output/GodMode9.firm dist/native/CartVerity-v0.2.0-alpha.5.firm
           cd dist/native
-          sha256sum CartVerity.firm CartVerity-corresponding-source.zip CartVerity-reference-tools.zip README.md > SHA256SUMS.txt
+          sha256sum CartVerity-v0.2.0-alpha.5.firm CartVerity-corresponding-source.zip CartVerity-reference-tools.zip README.md > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: CartVerity-native-experimental

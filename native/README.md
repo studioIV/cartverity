@@ -20,7 +20,7 @@ cd build/godmode9
 make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.5
 ```
 
-Copy `output/GodMode9.firm` as `CartVerity.firm`. Preparation requires a new
+Copy `output/GodMode9.firm` as `CartVerity-v0.2.0-alpha.5.firm`. Preparation requires a new
 output directory and checks the official archive's SHA-256. `--source-zip PATH`
 accepts the matching archive offline. No script-mode build is required.
 
