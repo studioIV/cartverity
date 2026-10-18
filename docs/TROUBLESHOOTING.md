@@ -26,6 +26,11 @@ display updates only. Report version, console model, refresh and whether it is
 full-screen flashing, moving bars, or text tearing. A short display video can
 help; avoid including personal files. The host preview is not a hardware test.
 
+## Tapping a control label does nothing
+
+The footer badges identify the console's physical buttons. Press the labeled
+button; CartVerity does not use touch input. [Controls](USAGE.md#controls).
+
 ## Requires a standard DS cartridge / initialization failed
 
 The app accepts standard DS ROM cartridges up to 512 MiB and rejects
@@ -76,7 +81,7 @@ keys or console serials. [Testing checklist](TESTING.md).
 
 ## Database invalid, not found or no match
 
-Alpha.4 reads `SD:/gm9/support/cartverity/nds.cvdb`, not a DAT/ZIP placed directly
+CartVerity reads `SD:/gm9/support/cartverity/nds.cvdb`, not a DAT/ZIP placed directly
 on the SD. Run [the importer](REFERENCES.md) first, use Auto or Require, and
 remember a per-game sidecar takes priority. Ignore skips both sources.
 

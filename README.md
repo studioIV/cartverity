@@ -9,9 +9,9 @@ A standalone Nintendo DS cartridge integrity checker for Nintendo 3DS, developed
 for New Nintendo 3DS XL. Boot directly into a dual-screen dashboard to compare
 two complete ROM reads and, optionally, a supplied reference or offline database.
 
-**[Download alpha.4](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.4)**
-· [Firmware only](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.4/CartVerity.firm)
-· [Reference tools](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.4/CartVerity-reference-tools.zip)
+**[Download alpha.5](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.5)**
+· [Firmware only](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.5/CartVerity.firm)
+· [Reference tools](https://github.com/studioIV/cartverity/releases/download/v0.2.0-alpha.5/CartVerity-reference-tools.zip)
 
 Experimental: automated tests and builds do not certify hardware behavior.
 Consistent reads without a trustworthy reference remain **unverified**.
@@ -34,6 +34,8 @@ is needed. [Full installation and update instructions](docs/INSTALL.md).
 - Two full normalized-ROM SHA-1 passes, with cartridge initialization before
   each pass and CRC32 comparison of 1 MiB logical regions.
 - Overall/pass bars, average speed, elapsed time, ETA and differing-region counts.
+- A bright result panel prioritizes the outcome, reference and final scan stats.
+- Physical-button controls appear as labeled badges in a separate footer.
 - RAM rendering with changed-pixel updates to reduce visible redraw flicker.
 - Session settings for refresh, brightness, reference policy and initial result page.
 - Per-game SHA-1 sidecars or an imported No-Intro database; unique SD reports.

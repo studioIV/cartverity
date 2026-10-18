@@ -1,6 +1,7 @@
 name: Native dashboard
 on:
   push:
+    branches: ['main']
     paths: ['native/**', 'tools/prepare_native.py', 'tools/import_dat.py', '.github/workflows/native.yml']
   pull_request:
     paths: ['native/**', 'tools/prepare_native.py', 'tools/import_dat.py', '.github/workflows/native.yml']
@@ -41,7 +42,7 @@ jobs:
           python3 -c "from zipfile import ZipFile; files=['tools/import_dat.py','tools/make_reference.py','docs/REFERENCES.md','docs/REFERENCE_DATABASE_FORMAT.md','docs/REFERENCE_SOURCES.md','LICENSE']; z=ZipFile('dist/native/CartVerity-reference-tools.zip','w'); [z.write(p,p) for p in files]; z.close()"
       - name: Build standalone ARM payload
         working-directory: build/godmode9
-        run: make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.4 -j2
+        run: make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.5 -j2
       - name: Audit active cartridge initializer
         run: |
           cd build/godmode9

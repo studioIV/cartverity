@@ -17,7 +17,7 @@ From the repository root:
 ```sh
 python3 tools/prepare_native.py --out build/godmode9
 cd build/godmode9
-make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.4
+make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.5
 ```
 
 Copy `output/GodMode9.firm` as `CartVerity.firm`. Preparation requires a new
@@ -28,6 +28,9 @@ The dedicated entrypoint bypasses the browser. Conditional integration removes
 save-detection blocks from cartridge initialization, avoiding the EEPROM
 write/restore capacity probe. CI audits the active preprocessed initializer.
 The adapter uses RAM rendering and updates only changed screen pixels.
+The result view replaces progress bars with the outcome, reference and final
+stats; a separate footer identifies physical-button controls. It has no touch
+input.
 
 ## Corresponding source and licensing
 

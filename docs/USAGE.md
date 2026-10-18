@@ -12,9 +12,16 @@
    operation returns. A cancelled scan is recorded as cancelled, not passed.
 5. Read the result. **X** cycles summary, SHA-1, SD report and reference-source pages.
 
+The top screen replaces progress bars with a prominent outcome, reference
+status and concise final stats. The lower screen provides the selected detail
+page, with controls separated from the content.
+
 No ROM dump is saved. No repair or cartridge refresh operation is performed.
 
 ## Controls
+
+High-contrast button badges in the lower footer identify physical controls.
+Press the console buttons shown; these labels are not touch-screen buttons.
 
 | Screen | Button | Action |
 | --- | --- | --- |
@@ -34,6 +41,9 @@ Buttons held while leaving a screen must be released before the next action.
 Controls on the settings screen take precedence over dashboard power controls.
 
 ## Dashboard metrics
+
+During scanning, the top screen shows progress and live metrics. At the result,
+it prioritizes the outcome and reference, followed by final scan stats.
 
 | Metric | Meaning |
 | --- | --- |

@@ -1,4 +1,4 @@
-# CartVerity alpha.4
+# CartVerity alpha.5
 
 by **studioIV**
 
@@ -16,6 +16,10 @@ cartridge, then hold START at boot and choose CartVerity. Do not replace
 A starts; B cancels a scan. At the result X cycles details, including reference
 source. Y opens session settings outside scanning. Dashboard B powers off;
 START reboots. The SD reports are under `gm9/out/dscheck/`.
+
+The result screen leads with the outcome, reference and final stats. Summary,
+hashes, report and source details remain on the lower screen. Its high-contrast
+footer badges label physical buttons; there is no touch input.
 
 ## References
 

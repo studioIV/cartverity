@@ -9,7 +9,7 @@ does not install custom firmware. Keep your existing working GodMode9 payload.
 ## Install
 
 1. Download `CartVerity.firm` from the
-   [v0.2.0-alpha.4 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.4).
+   [v0.2.0-alpha.5 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.5).
    The release also contains checksums, build information, licenses and complete
    corresponding source. You only need the `.firm` on the console to scan.
 2. Power off the console. Connect its SD card to your computer.

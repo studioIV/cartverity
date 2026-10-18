@@ -10,6 +10,8 @@ typedef struct {
     void *context;
     void (*rect)(void *, int screen, int x, int y, int w, int h, uint32_t color);
     void (*text)(void *, int screen, int x, int y, uint32_t color, const char *text);
+    /* Optional; result headings and metrics use scale 2 with the pinned font. */
+    void (*text_scaled)(void *, int screen, int x, int y, uint32_t color, unsigned scale, const char *text);
 } CvPainter;
 
 typedef struct {

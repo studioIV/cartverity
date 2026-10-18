@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0-alpha.5
+
+- Give completed scans a brighter result panel with the outcome, reference and
+  final stats in place of completed progress bars.
+- Separate physical-button controls from content with high-contrast labeled
+  badges in a footer; no touch input or key actions are added.
+- Refresh summary, hash, SD report and reference-source pages. Scan coverage,
+  reference decisions and session settings are unchanged.
+- Keep cancellation at the final read from displaying an agreement claim before
+  the final comparison; display SD report failures separately from the ROM verdict.
+
 ## 0.2.0-alpha.4
 
 - Reference tools correction: accept official No-Intro exports that list individual

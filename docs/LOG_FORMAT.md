@@ -20,7 +20,7 @@ failed scan. Missing completion means the report may be interrupted or partial.
 | --- | --- |
 | `format` | `cartverity-native/1` |
 | `state` | Initial INCOMPLETE; final COMPLETE if report writing reaches the end |
-| `version` | Native app version, such as `0.2.0-alpha.4` |
+| `version` | Native app version, such as `0.2.0-alpha.5` |
 | `godmode9_base` | Pinned upstream base, `2.2.3` |
 | `display_refresh_ms` | Configured display update interval |
 | `reference_policy` | AUTO, REQUIRE or IGNORE |

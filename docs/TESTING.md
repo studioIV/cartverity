@@ -22,7 +22,7 @@ python3 native/tests/test_native.py /tmp/cartverity.so
 ```
 
 This is a Linux/macOS path example; Windows needs a suitable compiler and DLL.
-The 13 compiled-C tests cover scan faults, cancellation, hashes, reference
+The 17 compiled-C tests cover scan faults, cancellation, hashes, reference
 lookup, metrics, settings, screen bounds and unchanged-pixel presentation.
 Cross-language cases load Python-generated databases in C, including missing
 hashes, wrong sizes, truncation, corrupted fields and valid-CRC duplicate/unsorted
@@ -48,7 +48,7 @@ interrupt power to simulate faults.
 
 | Test | Evidence |
 | --- | --- |
-| Boot current alpha.4 | Exact version, model, dashboard and by studioIV header |
+| Boot current alpha.5 | Exact version, model, dashboard and by studioIV header |
 | Two complete reads | Native log, both byte counts and SHA-1 values |
 | Independent comparison | Same full normalized view; source and provenance |
 | Database | Compatible DAT match, missing entry stays unverified, correct source page/log |
@@ -57,6 +57,8 @@ interrupt power to simulate faults.
 | Cancel/failure | Outcome and partial progress; no false reference verdict |
 | Settings | Navigation, brightness, defaults, initial page and reboot reset |
 | Display | Refresh interval, full-screen flash versus text/bar tearing |
+| Result layout | Outcome/reference visible, stats correct, all four detail pages legible |
+| Controls | Footer badges distinct from content; physical buttons match their labels |
 | Rescan/logs | A returns to ready, another A starts, unique reports preserved |
 | Unsupported/no cart | CANNOT START, no scan |
 | Exit | Dashboard B powers off; START reboots |

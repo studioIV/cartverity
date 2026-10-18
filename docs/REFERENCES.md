@@ -1,6 +1,6 @@
 # Add references to the standalone app
 
-CartVerity alpha.4 supports offline lookup in an imported No-Intro Nintendo DS
+CartVerity supports offline lookup in an imported No-Intro Nintendo DS
 XML DAT, as well as per-game binary SHA-1 sidecars. No ROM files are needed to
 import a DAT. The app does not download data over the network.
 
@@ -23,7 +23,7 @@ claimed provenance; they do not authenticate the input.
    compressed. Choose hashes compatible with full decrypted/normalized DS ROMs.
    Do not use encrypted, trimmed, Download Play or DSi digital data.
 2. Download `CartVerity-reference-tools.zip` from the
-   [alpha.4 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.4)
+   [alpha.5 release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.5)
    and extract it. Alternatively use the repository's tools folder.
 3. With Python 3.10+ on your computer, run the command below from the extracted
    folder. Replace the DAT path and SD drive letter with your actual paths.

@@ -67,10 +67,13 @@ class Database(C.Structure):
 
 RECT = C.CFUNCTYPE(None, C.c_void_p, C.c_int, C.c_int, C.c_int, C.c_int, C.c_int, U32)
 TEXT = C.CFUNCTYPE(None, C.c_void_p, C.c_int, C.c_int, C.c_int, U32, C.c_char_p)
+SCALE = C.CFUNCTYPE(None, C.c_void_p, C.c_int, C.c_int, C.c_int,
+                   U32, C.c_uint, C.c_char_p)
 
 
 class Painter(C.Structure):
-    _fields_ = [('context', C.c_void_p), ('rect', RECT), ('text', TEXT)]
+    _fields_ = [('context', C.c_void_p), ('rect', RECT), ('text', TEXT),
+                ('text_scaled', SCALE)]
 
 
 LIBRARY.cv_scan.argtypes = [U32, PTR, PTR, C.POINTER(Callbacks), C.POINTER(Result)]
@@ -90,6 +93,27 @@ LIBRARY.cv_db_validate.argtypes = [PTR, C.c_size_t, C.POINTER(Database)]
 LIBRARY.cv_db_validate.restype = C.c_int
 LIBRARY.cv_db_find.argtypes = [C.POINTER(Database), PTR, U32]
 LIBRARY.cv_db_find.restype = C.c_char_p
+
+
+def draw_events(view, scaled=True):
+    """Capture actual drawing commands; callback checks must run outside ctypes."""
+    events = []
+
+    def rect(_, screen, x, y, width, height, color):
+        events.append(dict(kind='rect', screen=screen, x=x, y=y,
+                           width=width, height=height, color=color))
+
+    def text(_, screen, x, y, color, value):
+        events.append(dict(kind='text', screen=screen, x=x, y=y, color=color,
+                           scale=1, value=value.decode('ascii')))
+
+    def text_scaled(_, screen, x, y, color, scale, value):
+        events.append(dict(kind='text', screen=screen, x=x, y=y, color=color,
+                           scale=scale, value=value.decode('ascii')))
+
+    painter = Painter(None, RECT(rect), TEXT(text), SCALE(text_scaled) if scaled else SCALE())
+    LIBRARY.cv_draw(C.byref(painter), C.byref(view))
+    return events
 
 
 def run_scan(data, second=None, reference=None, fault=None, cancel=None, fail_begin=0):
@@ -267,33 +291,141 @@ class NativeTests(unittest.TestCase):
 
     def test_dashboard_bounds_and_all_result_pages(self):
         failures = []
-        def rect(_, screen, x, y, w, h, color):
-            if not (screen in (0, 1) and x >= 0 and y >= 0 and w > 0 and h > 0
-                    and x+w <= (400 if screen == 0 else 320) and y+h <= 240):
-                failures.append(('rect', screen, x, y, w, h))
-        def text(_, screen, x, y, color, value):
-            if x + len(value) * 8 > (400 if screen == 0 else 320) or y+10 > 240:
-                failures.append(('text', screen, x, y, value))
-        paint = Painter(None, RECT(rect), TEXT(text))
         out = Result()
-        view = View(name=b'YU-GI-OH! WC7', code=b'AY7P', revision=255,
+        view = View(name=b'N'*39, code=b'AY7P', revision=255,
                     total=536870912, pass_number=2, done=536870912, ms=3600000,
-                    reference=1, saved=1, detail=b'Both reads match the supplied SHA-1.',
-                    path=b'0:/gm9/out/dscheck/native_261018_010134_0000.txt', result=C.pointer(out))
+                    reference=1, saved=1, detail=b'D'*79,
+                    path=b'0:/gm9/out/dscheck/'+b'P'*173, result=C.pointer(out))
         options = Settings(3, 4, 2, 2)
         view.settings = C.pointer(options)
-        view.reference_database = 1
-        view.reference_source = b'No-Intro / '+b'x'*60
+        view.reference_source = b'S'*79
         view.reference_version = b'v'*47
         view.reference_title = b'T'*127
-        view.reference_url = b'https://datomatic.no-intro.org/'
+        view.reference_url = b'https://'+b'U'*63
         view.reference_dat_sha256 = b'A'*64
-        for stage in range(5):
-            for status in range(11):
+        for scaled in (False, True):
+            for database in (False, True):
+                view.reference_database = view.reference = database
+                for saved in (False, True):
+                    view.saved = saved
+                    for stage in range(5):
+                        for status in range(11):
+                            out.complete[:] = (1, 1) if status in (2, 3, 4, 5, 10) else (1, 0)
+                            for page in range(4):
+                                view.stage, view.page, out.status = stage, page, status
+                                case = (scaled, database, saved, stage, status, page)
+                                for event in draw_events(view, scaled):
+                                    screen, x, y = event['screen'], event['x'], event['y']
+                                    if event['kind'] == 'rect':
+                                        width, height = event['width'], event['height']
+                                    else:
+                                        width = len(event['value']) * 8 * event['scale']
+                                        height = 10 * event['scale']
+                                        if event['scale'] < 1:
+                                            failures.append((case, event))
+                                    if not (screen in (0, 1) and x >= 0 and y >= 0
+                                            and width > 0 and height > 0
+                                            and x+width <= (400 if screen == 0 else 320)
+                                            and y+height <= 240):
+                                        failures.append((case, event))
+        self.assertEqual(failures[:20], [], f'{len(failures)} out-of-bounds commands')
+
+    def test_result_dashboard_verdicts_and_metrics_replace_progress(self):
+        verdicts = {
+            2: 'READS CONSISTENT', 3: 'REFERENCE MATCH', 4: 'REFERENCE DIFFERS',
+            5: 'READS DIFFER', 6: 'SCAN CANCELLED', 7: 'SCAN INCOMPLETE',
+            8: 'SCAN INCOMPLETE', 9: 'SCAN INCOMPLETE', 10: 'DATABASE MATCH',
+        }
+        out = Result()
+        view = View(name=b'Synthetic cartridge', code=b'TEST', total=1048576,
+                    pass_number=2, done=1048576, ms=125000, stage=2,
+                    result=C.pointer(out))
+        for status, verdict in verdicts.items():
+            for database in (False, True):
                 for page in range(4):
-                    view.stage, view.page, out.status = stage, page, status
-                    LIBRARY.cv_draw(C.byref(paint), C.byref(view))
-        self.assertEqual(failures, [])
+                    with self.subTest(status=status, database=database, page=page):
+                        out.status, view.reference_database, view.page = status, database, page
+                        out.complete[:] = (1, 1) if status in (2, 3, 4, 5, 10) else (1, 0)
+                        events = draw_events(view)
+                        top = [event['value'].upper() for event in events
+                               if event['kind'] == 'text' and event['screen'] == 0]
+                        self.assertIn(verdict, top)
+                        self.assertTrue(any('PASS' in value for value in top))
+                        self.assertTrue(any('REGION' in value or 'CHANGED' in value for value in top))
+                        self.assertTrue(any('ELAPSED' in value or 'TIME' in value for value in top))
+                        self.assertFalse(any(value.startswith(('OVERALL', 'PASS 1 / 2', 'PASS 2 / 2'))
+                                             for value in top))
+                        if status != 10:
+                            self.assertFalse(any('DATABASE MATCH' in value or 'MATCHES_DATABASE' in value
+                                                 for value in top))
+                        if status == 2:
+                            self.assertTrue(any('UNVERIFIED' in value for value in top))
+        # The enhanced painter is optional; a plain-text-only caller still gets the verdict.
+        out.status = 10
+        fallback = draw_events(view, scaled=False)
+        self.assertIn('DATABASE MATCH', [e['value'] for e in fallback if e['kind'] == 'text'])
+        self.assertTrue(any(e['kind'] == 'text' and e['scale'] > 1 for e in draw_events(view)))
+
+    def test_cancellation_after_final_read_does_not_claim_agreement(self):
+        # The final progress callback runs after both digests are complete, but
+        # before cv_scan compares them or looks at a supplied reference.
+        data = b'A'*512
+        for second in (data, b'B'*512):
+            with self.subTest(reads_equal=second == data):
+                out, _ = run_scan(data, second=second,
+                                  cancel=lambda number, done: number == 2 and done == len(data))
+                self.assertEqual(out.status, 6)
+                self.assertEqual(list(out.complete), [1, 1])
+                view = View(name=b'Synthetic cartridge', code=b'TEST', total=len(data),
+                            pass_number=2, done=len(data), ms=1000, stage=2,
+                            reference=1, reference_database=1, result=C.pointer(out))
+                events = draw_events(view)
+                top = [e['value'] for e in events if e['kind'] == 'text' and e['screen'] == 0]
+                bottom = [e['value'] for e in events if e['kind'] == 'text' and e['screen'] == 1]
+                self.assertIn('SCAN CANCELLED', top)
+                self.assertNotIn('Two complete reads agree', bottom)
+                self.assertTrue(any('not' in value.lower() or 'cancel' in value.lower()
+                                    or 'incomplete' in value.lower() for value in bottom))
+                self.assertFalse(any('matched' in value.lower() for value in top+bottom))
+                self.assertFalse(any('partial scan' in value.lower() for value in top))
+
+    def test_report_failure_does_not_change_or_hide_reference_verdict(self):
+        out = Result(status=10)
+        out.complete[:] = (1, 1)
+        view = View(name=b'Synthetic cartridge', code=b'TEST', total=1048576,
+                    pass_number=2, done=1048576, ms=125000, stage=2,
+                    reference=1, reference_database=1, result=C.pointer(out))
+        for page, warning in ((0, 'SD REPORT INCOMPLETE'), (2, 'Report may be incomplete')):
+            with self.subTest(page=page):
+                view.page = page
+                events = draw_events(view)
+                self.assertIn('DATABASE MATCH', [e['value'] for e in events
+                                                if e['kind'] == 'text' and e['screen'] == 0])
+                self.assertIn(warning, [e['value'] for e in events
+                                       if e['kind'] == 'text' and e['screen'] == 1])
+
+    def test_result_controls_are_badges_in_a_separate_footer(self):
+        out = Result(status=2)
+        view = View(name=b'Synthetic cartridge', code=b'TEST', total=1048576,
+                    pass_number=2, done=1048576, ms=125000, stage=2,
+                    result=C.pointer(out))
+        for page in range(4):
+            with self.subTest(page=page):
+                view.page = page
+                events = draw_events(view)
+                keys = [e for e in events if e['kind'] == 'text' and e['screen'] == 1
+                        and e['value'] in ('A', 'B', 'X', 'Y', 'START')]
+                self.assertEqual({e['value'] for e in keys}, {'A', 'B', 'X', 'Y', 'START'})
+                for key in keys:
+                    self.assertGreaterEqual(key['y'], 174)
+                    # A badge is a filled rectangle around the key, separate from its label.
+                    badges = [e for e in events if e['kind'] == 'rect' and e['screen'] == 1
+                              and e['x'] <= key['x'] and e['y'] <= key['y']
+                              and e['x']+e['width'] >= key['x']+len(key['value'])*8*key['scale']
+                              and e['y']+e['height'] >= key['y']+10*key['scale']
+                              and e['width'] < 100 and e['height'] < 32]
+                    self.assertTrue(badges, f"Missing badge behind {key['value']}")
+                    self.assertTrue(all(badge['y'] >= 174 for badge in badges))
 
 
 if __name__ == '__main__':

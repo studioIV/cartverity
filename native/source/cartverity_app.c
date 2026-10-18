@@ -20,7 +20,7 @@
 #include "power.h"
 #include <stdarg.h>
 
-#define CV_VERSION "0.2.0-alpha.4"
+#define CV_VERSION "0.2.0-alpha.5"
 #define CV_OUTPUT "0:/gm9/out/dscheck"
 #define CV_DATABASE "0:/gm9/support/cartverity/nds.cvdb"
 #define CV_PIXELS ((400u+320u)*240u)
@@ -69,7 +69,25 @@ static void paint_text(void *unused, int screen, int x, int y, uint32_t color, c
         x += GetFontWidth();
     }
 }
-static const CvPainter painter = {NULL, paint_rect, paint_text};
+static void paint_scaled(void *unused, int screen, int x, int y, uint32_t color,
+                         unsigned scale, const char *value) {
+    (void)unused;
+    const int width = screen == CV_SCREEN_TOP ? 400 : 320;
+    const int fw = (int)GetFontWidth(), fh = (int)GetFontHeight();
+    if (!scale || scale > 2 || fw > 8 || fh > 10 || x < 0 || y < 0 || y+fh*(int)scale > 240) return;
+    /* DrawCharacter uses column-major 240px columns even for a RAM glyph.
+       Render a mask, then enlarge foreground pixels into the frame in RAM. */
+    uint16_t glyph[8*240] = {0};
+    while (*value && x+fw*(int)scale <= width) {
+        DrawCharacter(glyph, (unsigned char)*value++, 0, 0, 1, 0);
+        for (int xx = 0; xx < fw; ++xx)
+            for (int yy = 0; yy < fh; ++yy)
+                if (glyph[xx*240+239-yy])
+                    DrawRectangle(screen_buffer(screen), x+xx*(int)scale, y+yy*(int)scale, scale, scale, color);
+        x += fw*(int)scale;
+    }
+}
+static const CvPainter painter = {NULL, paint_rect, paint_text, paint_scaled};
 static void draw(CvSession *s) {
     s->view.settings = &settings;
     cv_draw(&painter, &s->view);
