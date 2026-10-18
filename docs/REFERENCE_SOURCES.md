@@ -34,9 +34,8 @@ input from the official source and retain the original DAT for audit.
 ## Distribution boundaries
 
 No No-Intro DAT, real reference database or ROM content is bundled in this
-release. The official DAT download endpoint was unavailable to this development
-session; automated tests use clearly synthetic records. Users import their own
-download with the supplied tool. No website access control is bypassed.
+release. Users import their own official download with the supplied tool. Automated
+tests use clearly synthetic records rather than catalog data.
 
 CartVerity's MIT license covers its original code and tools; it does not relicense
 No-Intro's catalog data or imply that studioIV authored it. Preserve source

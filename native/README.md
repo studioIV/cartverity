@@ -1,34 +1,18 @@
-# CartVerity standalone: build and source
+# Build CartVerity
 
 by **studioIV**
 
-The current app is **v0.2.0-alpha.4**, built from GodMode9 2.2.3 at commit
-`0ee81b7738401b3e9f0b92b3b11159936222e542` plus this directory's sources.
-
-## User guides
-
-Start with the [standalone tutorials](../docs/TUTORIALS.md):
-[install/update](../docs/INSTALL.md), [controls/settings](../docs/USAGE.md),
-[references](../docs/REFERENCES.md), [reference data sources](../docs/REFERENCE_SOURCES.md), [troubleshooting](../docs/TROUBLESHOOTING.md),
-[logs](../docs/LOG_FORMAT.md) and [limits](../docs/LIMITATIONS.md).
-
-Download the [current experimental release](https://github.com/studioIV/cartverity/releases/tag/v0.2.0-alpha.4).
-The old `.gm9` script has [separate documentation](../docs/LEGACY_SCRIPT.md).
-Native physical validation remains separate from build/host tests.
-
-## Dashboard preview
-
-![Earlier dashboard host preview with simulated scan data](dashboard-preview.png)
-
-This is an earlier alpha.1 host rendering of the C dashboard with GodMode9's
-bundled font, not a console screenshot. It predates the settings menu, revised
-version footer and `by studioIV` header. Current behavior is documented above.
-Upstream font/source notices are preserved in corresponding-source packages.
+For installation, controls and references, use the [main README](../README.md#guides).
+This directory contains the standalone app and portable C components.
 
 ## Build
 
-Requires Python 3.10+, devkitARM and firmtool. The GitHub workflow documents the
-build environment. From the repository root:
+Requires Python 3.10+, devkitARM and firmtool. The
+[native workflow](../.github/workflows/native.yml) documents the build environment
+and pinned firmtool revision. GodMode9 2.2.3 is pinned to commit
+`0ee81b7738401b3e9f0b92b3b11159936222e542`.
+
+From the repository root:
 
 ```sh
 python3 tools/prepare_native.py --out build/godmode9
@@ -36,15 +20,25 @@ cd build/godmode9
 make firm CARTVERITY_APP=1 VERSION=CartVerity-v0.2.0-alpha.4
 ```
 
-`--source-zip` allows an offline official archive; its SHA-256 must match the
-pinned digest in the preparation tool. Output must be a new directory.
-Copy `output/GodMode9.firm` as `CartVerity.firm`.
+Copy `output/GodMode9.firm` as `CartVerity.firm`. Preparation requires a new
+output directory and checks the official archive's SHA-256. `--source-zip PATH`
+accepts the matching archive offline. No script-mode build is required.
 
-New CartVerity sources are MIT licensed. The **combined GodMode9-derived
-firmware is GPL-3.0-or-later**, with upstream component notices retained.
-Every distributed native firmware must be accompanied by its complete modified
-GodMode9 source (including `license.txt`, build files, resources and CartVerity
-sources). CI packages that tree **before compiling** as
-`CartVerity-corresponding-source.zip`. Extract it and run the same make command
-to rebuild with the documented toolchain. Do not distribute only the MIT helper
-sources as corresponding source for the firmware.
+The dedicated entrypoint bypasses the browser. Conditional integration removes
+save-detection blocks from cartridge initialization, avoiding the EEPROM
+write/restore capacity probe. CI audits the active preprocessed initializer.
+The adapter uses RAM rendering and updates only changed screen pixels.
+
+## Corresponding source and licensing
+
+Original CartVerity code is MIT licensed. The combined GodMode9-derived firmware
+is **GPL-3.0-or-later**, with component notices retained. Every binary distribution
+must provide its complete matching modified source, not just this small folder.
+
+CI packages `CartVerity-corresponding-source.zip` before compiling. It includes
+the complete upstream tree, applied integration, native sources, build files,
+resources, `license.txt`, CartVerity's license and build environment. Extract it
+and use the same make command to rebuild with the recorded toolchain.
+
+Reference tools are a separate MIT package; their license does not relicense
+imported No-Intro data. [Data attribution](../docs/REFERENCE_SOURCES.md).

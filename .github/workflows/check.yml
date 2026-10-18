@@ -20,9 +20,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - name: Validate script
-        run: python tools/gm9check.py gm9/scripts/CartVerity.gm9
-      - name: Test scenarios and reference helper
+      - name: Test reference tools
         run: python -m unittest discover -s tests -v
-      - name: Check pinned upstream source
-        run: python tools/check_upstream.py

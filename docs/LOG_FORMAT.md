@@ -8,8 +8,7 @@ SD:/gm9/out/dscheck/native_YYMMDD_hhmmss_0000.txt
 
 The decimal suffix selects an unused filename. Timestamps come from the console
 RTC and can be wrong. No report is created when discovery/reference checks fail;
-log setup must succeed before the scan starts. The native format differs from
-the [legacy script format](LEGACY_LOG_FORMAT.md).
+log setup must succeed before the scan starts.
 
 Split each line at the first `=`. Ignore unknown future keys. Repeated keys use
 their last value, **except `changed_region_offset` is a list**: retain every
@@ -62,5 +61,4 @@ marker is not a transaction or a cartridge pass verdict.
 
 Logs contain game identifiers, reference paths/hashes, results and a timestamp
 in their filename. They contain no ROM payload, save or console serial. Review
-them before sharing. The original `examples/consistent-unverified.txt` remains
-a **synthetic legacy-format example**, not a game reference or native report.
+them before sharing.

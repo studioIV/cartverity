@@ -48,8 +48,8 @@ file. This checks agreement with the downloaded release, not cartridge integrity
 2. Replace only `luma/payloads/CartVerity.firm` with the new release's file.
 3. Keep existing `gm9/out/dscheck` logs, `gm9/support/dscheck` references and
    `gm9/support/cartverity/nds.cvdb` if you already imported one.
-4. Boot CartVerity and check its displayed version. Alpha.3 includes `by studioIV`;
-   alpha.2 and later include the Y settings menu and incremental redraws.
+4. Boot CartVerity and check its displayed version. The header shows `by studioIV`;
+   Y opens settings outside scanning.
 
 Session settings reset when the app restarts. There is no saved settings file
 to migrate. Avoid keeping several versions with similar `.firm` names unless

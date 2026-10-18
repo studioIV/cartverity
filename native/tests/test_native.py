@@ -146,6 +146,13 @@ class NativeTests(unittest.TestCase):
             broken = bytearray(data); broken[offset] ^= 1
             value = (U8*len(broken)).from_buffer_copy(broken)
             self.assertFalse(LIBRARY.cv_db_validate(value, len(broken), C.byref(db)))
+        # Valid CRCs cannot hide duplicate or unsorted lookup keys.
+        for body in (data[416:576]+data[256:416], data[256:416]*2):
+            broken = bytearray(data[:256]+body)
+            struct.pack_into('<I',broken,16,0)
+            struct.pack_into('<I',broken,16,zlib.crc32(broken))
+            value=(U8*len(broken)).from_buffer_copy(broken)
+            self.assertFalse(LIBRARY.cv_db_validate(value,len(broken),C.byref(db)))
 
     def test_database_rejects_semantic_corruption_even_with_valid_crc(self):
         spec = importlib.util.spec_from_file_location('dat_tool', Path(__file__).resolve().parents[2]/'tools/import_dat.py')
@@ -275,6 +282,12 @@ class NativeTests(unittest.TestCase):
                     path=b'0:/gm9/out/dscheck/native_261018_010134_0000.txt', result=C.pointer(out))
         options = Settings(3, 4, 2, 2)
         view.settings = C.pointer(options)
+        view.reference_database = 1
+        view.reference_source = b'No-Intro / '+b'x'*60
+        view.reference_version = b'v'*47
+        view.reference_title = b'T'*127
+        view.reference_url = b'https://datomatic.no-intro.org/'
+        view.reference_dat_sha256 = b'A'*64
         for stage in range(5):
             for status in range(11):
                 for page in range(4):

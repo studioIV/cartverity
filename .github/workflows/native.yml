@@ -36,10 +36,8 @@ jobs:
           "$DEVKITARM/bin/arm-none-eabi-gcc" --version > build/godmode9/CartVerity-build-environment.txt
           python3 --version >> build/godmode9/CartVerity-build-environment.txt
           python3 -m pip freeze >> build/godmode9/CartVerity-build-environment.txt
-          cp build/godmode9/CartVerity-build-environment.txt dist/native/BUILD-ENVIRONMENT.txt
           python3 -c "import shutil; shutil.make_archive('dist/native/CartVerity-corresponding-source', 'zip', 'build', 'godmode9')"
-          cp build/godmode9/license.txt dist/native/LICENSE.GodMode9.txt
-          cp native/README.md dist/native/README.md
+          cp docs/RELEASE_README.md dist/native/README.md
           python3 -c "from zipfile import ZipFile; files=['tools/import_dat.py','tools/make_reference.py','docs/REFERENCES.md','docs/REFERENCE_DATABASE_FORMAT.md','docs/REFERENCE_SOURCES.md','LICENSE']; z=ZipFile('dist/native/CartVerity-reference-tools.zip','w'); [z.write(p,p) for p in files]; z.close()"
       - name: Build standalone ARM payload
         working-directory: build/godmode9
@@ -54,7 +52,7 @@ jobs:
         run: |
           cp build/godmode9/output/GodMode9.firm dist/native/CartVerity.firm
           cd dist/native
-          sha256sum CartVerity.firm CartVerity-corresponding-source.zip CartVerity-reference-tools.zip LICENSE.GodMode9.txt README.md BUILD-ENVIRONMENT.txt > SHA256SUMS.txt
+          sha256sum CartVerity.firm CartVerity-corresponding-source.zip CartVerity-reference-tools.zip README.md > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: CartVerity-native-experimental

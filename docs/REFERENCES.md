@@ -80,8 +80,7 @@ sidecar blocks Auto/Require even if a database exists. Ignore skips both sources
 ## Create a per-game sidecar instead
 
 A sidecar specifies one exact expected SHA-1. It remains useful for an
-independently verified reference or personal baseline and works with the legacy
-script too. The database is supported only by the standalone app.
+independently verified reference or personal baseline.
 
 1. With Auto selected, complete a scan and open its `native_*.txt` log on a PC.
 2. Find `reference_path=`. It gives the exact candidate filename, for example:

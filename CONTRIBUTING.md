@@ -1,27 +1,18 @@
 # Contributing
 
-The primary product is the standalone CartVerity `.firm`. Start with the
-[tutorials](docs/TUTORIALS.md), [limits](docs/LIMITATIONS.md) and
-[native build](native/README.md). The v0.1.0 script remains a legacy component.
+Start with the [README](README.md), [limits](docs/LIMITATIONS.md) and
+[native build](native/README.md). Keep cartridge ROM, saves and NAND read-only.
+Preserve the initializer's save-probe bypass and preprocessed-code audit. SD
+writes need a documented purpose and checked outcomes. Do not promote observed
+hashes automatically into trusted references.
 
-Keep cartridge ROM, save memory and NAND read-only. Preserve the native
-initializer's save-probe bypass and preprocessed-code audit. New SD writes must
-have an explicit documented purpose and checked outcomes. Do not add repair,
-refresh, permission unlocks, installations or automatic promotion of observed
-hashes into trusted references.
+Run the applicable [tests](docs/TESTING.md), including a real ARM build for
+native changes. Update controls, reference semantics and log documentation when
+their contract changes. Keep complete GPL corresponding source available for
+each distributed firmware and preserve upstream notices.
 
-Run applicable [automated checks](docs/TESTING.md). Native changes must compile
-with the pinned GodMode9 base. Document controls, settings, reference behavior,
-log fields and failure outcomes when they change. Preserve complete GPL
-corresponding-source distribution with every combined firmware binary.
-
-For script changes, use the static/model checks and keep its source ASCII/LF.
-The script model does not certify native C or hardware. Update the appropriate
-legacy docs rather than mixing the two products' statuses and controls.
-
-Hardware reports should identify standalone versus legacy, exact app/base
-version, console model, cartridge code/region/revision, settings, expected and
-observed behavior, and a redacted text report. For display issues specify
-refresh interval and flashing versus tearing. Distinguish personal baselines
-from independent references with provenance. Do not attach ROMs, saves, keys,
-databases you cannot redistribute or personal console identifiers.
+Hardware reports should include exact app version, console model, cartridge
+code/region/revision, settings and a redacted native text log. For display
+issues describe flashing versus tearing and the refresh interval. Distinguish
+personal baselines from independently sourced hashes. Do not attach ROMs,
+saves, keys, private console identifiers or catalogs you cannot redistribute.

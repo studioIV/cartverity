@@ -15,10 +15,6 @@ probe. The app never accesses save memory and has no cart/NAND repair, write,
 refresh or installation action. Only SD log directories/files are created or
 written. Settings are session-only and have no SD configuration file.
 
-The old `.gm9` script cannot suppress stock GodMode9's initialization probe;
-see [legacy limitations](LEGACY_LIMITATIONS.md). Its write scope must not be
-confused with the native integration's bypass.
-
 ## What the scan measures
 
 Two SHA-1 passes cover the full normalized DS ROM length, including padding.
@@ -60,6 +56,5 @@ Power loss or storage faults can damage a report even if a completion marker
 is readable. A completed report can record a failed/cancelled scan.
 
 Host tests, build success and a host preview cannot certify console behavior.
-The initial user-provided complete log validated the old script on one cart;
-native observations and pending checks are recorded in [testing](TESTING.md).
+Hardware observations and pending checks are recorded in [testing](TESTING.md).
 The app cannot assess remaining cartridge lifespan or repair damaged hardware.

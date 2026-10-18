@@ -42,8 +42,9 @@ the file and produces unverified results; it does not fix the reference.
 
 ## CONSISTENT_UNVERIFIED
 
-Both reads agreed, but no reference was compared. This is expected without a
-reference or with Ignore selected. It is neither proof of corruption nor a
+Both reads agreed, but no reference match was established. This is expected
+without reference input, with Ignore selected, or when a database has no exact
+SHA-1-and-size match. It is neither proof of corruption nor a
 known-good verdict. [Reference tutorial](REFERENCES.md).
 
 ## REFERENCE_MISMATCH or INCONSISTENT_READS
@@ -70,8 +71,7 @@ session-only in the current release; no persistent configuration file is written
 ## Report a problem
 
 Include app version, console model, cartridge code/revision if known, relevant
-settings, expected/observed behavior and a redacted native text log. Say whether
-you used the standalone payload or legacy script. Do not attach ROMs, saves,
+settings, expected/observed behavior and a redacted native text log. Include the exact displayed version. Do not attach ROMs, saves,
 keys or console serials. [Testing checklist](TESTING.md).
 
 ## Database invalid, not found or no match

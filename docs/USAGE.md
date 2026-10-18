@@ -72,7 +72,7 @@ All settings keep two full passes; there is no abbreviated quick-pass mode.
 
 | Screen / log result | Meaning |
 | --- | --- |
-| READS CONSISTENT / `CONSISTENT_UNVERIFIED` | Both reads agree; no reference was compared |
+| READS CONSISTENT / `CONSISTENT_UNVERIFIED` | Both reads agree; no matching independent reference was established |
 | REFERENCE MATCH / `MATCHES_SUPPLIED_REFERENCE` | Both reads agree with the supplied hash; its source is not authenticated |
 | DATABASE MATCH / `MATCHES_DATABASE` | Both reads agree with a database SHA-1 and size; source details and logs record DAT provenance |
 | REFERENCE DIFFERS / `REFERENCE_MISMATCH` | Reads agree with each other but differ from the supplied hash |
